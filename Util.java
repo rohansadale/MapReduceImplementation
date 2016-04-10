@@ -18,6 +18,18 @@ public class Util
 			util	= new Util();
 		return util;
 	}
+
+        //Function to generate hash value for given string
+        public static long hash(String input)
+        {
+                long hash = 5381;
+                for (int i = 0; i < input.length() ;i++)
+                {
+                        hash = ((hash << 11) + hash) + input.charAt(i)*26*(i+1);
+                        hash = hash%MOD;
+                }
+                return hash;
+        }
 	
 	public static TThreadPoolServer getServer(int Port,SortServiceHandler sortService) throws TTransportException
 	{
