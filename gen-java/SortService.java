@@ -37,7 +37,7 @@ public class SortService {
 
   public interface Iface {
 
-    public String doJob(String filename) throws org.apache.thrift.TException;
+    public JobStatus doJob(String filename) throws org.apache.thrift.TException;
 
     public boolean join(Node node) throws org.apache.thrift.TException;
 
@@ -71,7 +71,7 @@ public class SortService {
       super(iprot, oprot);
     }
 
-    public String doJob(String filename) throws org.apache.thrift.TException
+    public JobStatus doJob(String filename) throws org.apache.thrift.TException
     {
       send_doJob(filename);
       return recv_doJob();
@@ -84,7 +84,7 @@ public class SortService {
       sendBase("doJob", args);
     }
 
-    public String recv_doJob() throws org.apache.thrift.TException
+    public JobStatus recv_doJob() throws org.apache.thrift.TException
     {
       doJob_result result = new doJob_result();
       receiveBase(result, "doJob");
@@ -157,7 +157,7 @@ public class SortService {
         prot.writeMessageEnd();
       }
 
-      public String getResult() throws org.apache.thrift.TException {
+      public JobStatus getResult() throws org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -276,7 +276,7 @@ public class SortService {
       return processMap;
     }
 
-    public static class doJob<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, doJob_args, String> {
+    public static class doJob<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, doJob_args, JobStatus> {
       public doJob() {
         super("doJob");
       }
@@ -285,10 +285,10 @@ public class SortService {
         return new doJob_args();
       }
 
-      public AsyncMethodCallback<String> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<JobStatus> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<String>() { 
-          public void onComplete(String o) {
+        return new AsyncMethodCallback<JobStatus>() { 
+          public void onComplete(JobStatus o) {
             doJob_result result = new doJob_result();
             result.success = o;
             try {
@@ -322,7 +322,7 @@ public class SortService {
         return false;
       }
 
-      public void start(I iface, doJob_args args, org.apache.thrift.async.AsyncMethodCallback<String> resultHandler) throws TException {
+      public void start(I iface, doJob_args args, org.apache.thrift.async.AsyncMethodCallback<JobStatus> resultHandler) throws TException {
         iface.doJob(args.filename,resultHandler);
       }
     }
@@ -745,7 +745,7 @@ public class SortService {
   public static class doJob_result implements org.apache.thrift.TBase<doJob_result, doJob_result._Fields>, java.io.Serializable, Cloneable, Comparable<doJob_result>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("doJob_result");
 
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRING, (short)0);
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -753,7 +753,7 @@ public class SortService {
       schemes.put(TupleScheme.class, new doJob_resultTupleSchemeFactory());
     }
 
-    public String success; // required
+    public JobStatus success; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -818,7 +818,7 @@ public class SortService {
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, JobStatus.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(doJob_result.class, metaDataMap);
     }
@@ -827,7 +827,7 @@ public class SortService {
     }
 
     public doJob_result(
-      String success)
+      JobStatus success)
     {
       this();
       this.success = success;
@@ -838,7 +838,7 @@ public class SortService {
      */
     public doJob_result(doJob_result other) {
       if (other.isSetSuccess()) {
-        this.success = other.success;
+        this.success = new JobStatus(other.success);
       }
     }
 
@@ -851,11 +851,11 @@ public class SortService {
       this.success = null;
     }
 
-    public String getSuccess() {
+    public JobStatus getSuccess() {
       return this.success;
     }
 
-    public doJob_result setSuccess(String success) {
+    public doJob_result setSuccess(JobStatus success) {
       this.success = success;
       return this;
     }
@@ -881,7 +881,7 @@ public class SortService {
         if (value == null) {
           unsetSuccess();
         } else {
-          setSuccess((String)value);
+          setSuccess((JobStatus)value);
         }
         break;
 
@@ -999,6 +999,9 @@ public class SortService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (success != null) {
+        success.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -1036,8 +1039,9 @@ public class SortService {
           }
           switch (schemeField.id) {
             case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-                struct.success = iprot.readString();
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.success = new JobStatus();
+                struct.success.read(iprot);
                 struct.setSuccessIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -1060,7 +1064,7 @@ public class SortService {
         oprot.writeStructBegin(STRUCT_DESC);
         if (struct.success != null) {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-          oprot.writeString(struct.success);
+          struct.success.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -1086,7 +1090,7 @@ public class SortService {
         }
         oprot.writeBitSet(optionals, 1);
         if (struct.isSetSuccess()) {
-          oprot.writeString(struct.success);
+          struct.success.write(oprot);
         }
       }
 
@@ -1095,7 +1099,8 @@ public class SortService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
-          struct.success = iprot.readString();
+          struct.success = new JobStatus();
+          struct.success.read(iprot);
           struct.setSuccessIsSet(true);
         }
       }

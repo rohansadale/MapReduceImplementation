@@ -5,3 +5,4 @@ IntermediateDirectory:Data/intermediate/
 OutputDirectory:Data/output/
 ChunkSize:100
 MergeTaskSize:8
+TaskReplication:3

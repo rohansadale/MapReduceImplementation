@@ -20,6 +20,7 @@ public class Server
 	private static String OUTPUT_DIRECTORY_KEY			= "OutputDirectory";
 	private static String CHUNK_SIZE_KEY				= "ChunkSize";
 	private static String MERGE_SIZE_KEY				= "MergeTaskSize";
+	private static String TASK_REPLICATION_KEY			= "TaskReplication";
 	
 	public static void main(String targs[]) throws TException
 	{
@@ -51,7 +52,7 @@ public class Server
 		Node currentNode					= new Node(Integer.parseInt(configParam.get(SERVER_IP_KEY)),Integer.parseInt(configParam.get(SERVER_PORT_KEY)));
 		SortServiceHandler sortService		= new SortServiceHandler(currentNode,configParam.get(INPUT_DIRECTORY_KEY),configParam.get(INTERMEDIATE_DIRECTORY_KEY),
 																	configParam.get(OUTPUT_DIRECTORY_KEY),Integer.parseInt(configParam.get(CHUNK_SIZE_KEY)),
-																	Integer.parseInt(configParam.get(MERGE_SIZE_KEY)));
+																	Integer.parseInt(configParam.get(MERGE_SIZE_KEY)),Integer.parseInt(configParam.get(TASK_REPLICATION_KEY));
 		TThreadPoolServer server			= Util.getInstance().getQuorumServer(Integer.parseInt(configParam.get(SERVER_PORT_KEY)),sortService);
 		server.serve();	
 	}
