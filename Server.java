@@ -49,11 +49,12 @@ public class Server
 		}
 
 		HashMap<String,String> configParam	= Util.getInstance().getParameters(CONFIG_FILE_NAME);
-		Node currentNode					= new Node(Integer.parseInt(configParam.get(SERVER_IP_KEY)),Integer.parseInt(configParam.get(SERVER_PORT_KEY)));
+		Node currentNode					= new Node(configParam.get(SERVER_IP_KEY),Integer.parseInt(configParam.get(SERVER_PORT_KEY)));
 		SortServiceHandler sortService		= new SortServiceHandler(currentNode,configParam.get(INPUT_DIRECTORY_KEY),configParam.get(INTERMEDIATE_DIRECTORY_KEY),
 																	configParam.get(OUTPUT_DIRECTORY_KEY),Integer.parseInt(configParam.get(CHUNK_SIZE_KEY)),
-																	Integer.parseInt(configParam.get(MERGE_SIZE_KEY)),Integer.parseInt(configParam.get(TASK_REPLICATION_KEY));
-		TThreadPoolServer server			= Util.getInstance().getQuorumServer(Integer.parseInt(configParam.get(SERVER_PORT_KEY)),sortService);
+																	Integer.parseInt(configParam.get(MERGE_SIZE_KEY)),Integer.parseInt(configParam.get(TASK_REPLICATION_KEY)));
+		TThreadPoolServer server			= Util.getInstance().getServer(Integer.parseInt(configParam.get(SERVER_PORT_KEY)),sortService);
+		sortService.healthCheck();
 		server.serve();	
 	}
 }
