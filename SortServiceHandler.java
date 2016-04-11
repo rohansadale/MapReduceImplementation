@@ -15,9 +15,10 @@ public class SortServiceHandler implements SortService.Iface
 	private static String inputDirectory		= "";
 	private static String intermediateDirectory	= "";
 	private static String outputDirectory		= "";	
+	private static int replication				= 0;
 
 	public SortServiceHandler(Node node,String inputDirectory,String intermediateDirectory,String outputDirectory,
-							int chunkSize,int mergeTaskSize)
+							int chunkSize,int mergeTaskSize,int replication)
 	{
 		computeNodes				= new ArrayList<Node>();
 		this.chunkSize				= chunkSize;
@@ -25,6 +26,7 @@ public class SortServiceHandler implements SortService.Iface
 		this.inputDirectory			= inputDirectory;
 		this.intermediateDirectory	= intermediateDirectory;
 		this.outputDirectory		= outputDirectory;
+		this.replication			= replication;
 	}
 	
 	@Override
@@ -52,10 +54,38 @@ public class SortServiceHandler implements SortService.Iface
 		}		
 	
 		double fileSize		= sortFile.length();
-		int numTasks		= Math.ceil(fileSize/5*chunkSize); 
+		int numTasks		= Math.ceil(fileSize/chunkSize); 
 		System.out.println("To sort " + filename + " " + numTasks + " are produced");	
-				
-
+		
+		ArrayList< ArrayList<sortJob> > jobs		= new ArrayList< ArrayList<sortJob> >();
+		int offset					= 0;
+		for(int i=0;i<numTasks;i++)
+		{
+			Collections.shuffle(computeNodes);
+			ArrayList<sortJob> chunkJob				= new ArrayList<sortJob>();
+			for(int j=0;j<replication;j++)
+			{
+				sortJob job				= new sortJob(filename,offset,chunkSize,0,computeNodes.get(j).ip,computeNodes.get(j).port);
+				chunkJob.add(job);	
+			}
+			jobs.add(chunkJob);
+			offset		= offset + chunkSize;
+		}	
+		
+		try
+		{
+			for(int i=0;i<jobs.size();i++)
+			{
+				for(int j=0;j<jobs.get(i).size();j++)
+					jobs.get(i).get(j).start();
+			}
+			for(int i=0;i<jobs.size();i++)
+			{
+				for(int j=0;j<jobs.get(i).size();j++)
+					jobs.get(i).get(j).join();
+			}
+		}
+		catch(InterruptedException e) {}
 	}
 	
 	@Override
@@ -87,7 +117,21 @@ public class SortServiceHandler implements SortService.Iface
 
 		public void run()
 		{
-			
+			try
+			{
+				TTransport transport				= new TSocket(ip,port);
+				TProtocol protocol					= new TBinaryProtocol(new TFramedTransport(transport));
+				QuorumService.Client client			= new QuorumService.Client(protocol);
+				transport.open();
+				startNode							= client.GetNode();
+				transport.close();
+			}
+
+			catch(TException x)
+			{
+				System.out.println(" =================== Unable to establish connection with Node " + ip + "... Exiting ... =================");
+				return;
+			}	
 		}
 	}
 }
