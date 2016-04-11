@@ -1,5 +1,8 @@
+include "time.thrift"
+
 service Compute
 {
-	string doSort(1:string filename,2:i32 offset,3:i32 toSort),
-	string doMerge(1:list<string> files)
+	time.Time doSort(1:string filename,2:i32 offset,3:i32 toSort),
+	time.Time doMerge(1:list<string> files),
+	bool ping()
 }
