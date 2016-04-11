@@ -193,6 +193,7 @@ public class SortServiceHandler implements SortService.Iface
 						computeNodes.get(rnd.nextInt(computeNodes.size())).ip,computeNodes.get(rnd.nextInt(computeNodes.size())).port));
 				jobs.remove(i);
 			}
+			i++;
 		}	
 	}
 
