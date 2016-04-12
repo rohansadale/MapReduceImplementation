@@ -74,12 +74,9 @@ public class ComputeNode{
                         Node currentNode = new Node(CURRENT_NODE_IP,CURRENT_NODE_PORT,Util.getInstance().hash(hashKey));
 
 			// Handler Code here
-	                ComputeServiceHandler computeService = new ComputeServiceHandler(currentNode,
-											configParam.get(INPUT_DIRECTORY_KEY),
+	                ComputeServiceHandler computeService = new ComputeServiceHandler(configParam.get(INPUT_DIRECTORY_KEY),
 											configParam.get(INTERMEDIATE_DIRECTORY_KEY),
-											configParam.get(OUTPUT_DIRECTORY_KEY),
-											Integer.parseInt(configParam.get(CHUNK_SIZE_KEY)),
-											Integer.parseInt(configParam.get(MERGE_SIZE_KEY)));
+											configParam.get(OUTPUT_DIRECTORY_KEY));
 
         	        TThreadPoolServer server = Util.getInstance().getServer(Integer.parseInt(configParam.get(SERVER_PORT_KEY)),computeService);
 	

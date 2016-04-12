@@ -22,9 +22,10 @@ public class ComputeServiceHandler implements Compute.Iface{
 	}
 
 
-
 	@Override
 	public Time doSort(String fileName, int offset, int count){
+
+		System.out.println("\nStarting Sort task for " + fileName);
 		long startTime = System.currentTimeMillis();
 		List<Integer> items = new ArrayList<>();
 
@@ -45,9 +46,11 @@ public class ComputeServiceHandler implements Compute.Iface{
 		long stopTime = System.currentTimeMillis();
 		long elapsedTime = stopTime - startTime;
 
+		System.out.println("Chunk Sorted for " + fileName + ", Offset - " + offset + " and Time taken =" + elapsedTime);
 		return(new Time(filename, elapsedTime));		
 	} 
 	
+
 	@Override
 	// Add two more parameters
 	//	1) Chunk no
@@ -71,6 +74,7 @@ public class ComputeServiceHandler implements Compute.Iface{
 		}
 
 		String outFileName = "m";
+		System.out.println("\nStarting Merge task for " + outFileName );
 		FileWriter fw = new FileWriter(outFileName);
 		PrintWriter pw = new PrintWriter(fw);
 		
@@ -112,7 +116,7 @@ public class ComputeServiceHandler implements Compute.Iface{
 		// Stop time
 		long stopTime = System.currentTimeMillis();
 		long elapsedTime = stopTime - startTime;
-
+		System.out.println("Merge Completed! Time taken = " + elapsedTime);
 		return(new Time(filename, elapsedTime));
 	}
 
