@@ -1,7 +1,7 @@
-# README #
+# Map Reduce Framework
 
-This README would normally document whatever steps are necessary to get your application up and running.
+Compile Code
 
-### What is this repository for? ###
+javac -cp .:../jars/libthrift-0.9.1.jar:../jars/slf4j-api-1.7.14.jar:gen-java/ *.java
 
-Map Reduce Framework
+
