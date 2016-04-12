@@ -23,7 +23,7 @@ public class ComputeServiceHandler implements Compute.Iface{
 
 
 	@Override
-	public Time doSort(String fileName, int offset, int count){
+	public JobTime doSort(String fileName, int offset, int count){
 
 		System.out.println("\nStarting Sort task for " + fileName);
 		long startTime = System.currentTimeMillis();
@@ -55,7 +55,7 @@ public class ComputeServiceHandler implements Compute.Iface{
 	// Add two more parameters
 	//	1) Chunk no
 	//	2) Intermediate Merge or Final Merge
-	public static Time doMerge(List<String> files){
+	public JobTime doMerge(List<String> files){
 
 		long startTime = System.currentTimeMillis();	
 		int n = files.size();
