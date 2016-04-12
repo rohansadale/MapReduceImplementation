@@ -20,16 +20,16 @@ public class Util
 	}
 
         //Function to generate hash value for given string
-        public static long hash(String input)
-        {
-                long hash = 5381;
-                for (int i = 0; i < input.length() ;i++)
-                {
-                        hash = ((hash << 11) + hash) + input.charAt(i)*26*(i+1);
-                        hash = hash%MOD;
-                }
-                return hash;
+    public static long hash(String input)
+    {
+    	long hash = 5381;
+        for (int i = 0; i < input.length() ;i++)
+       	{
+        	hash = ((hash << 11) + hash) + input.charAt(i)*26*(i+1);
+            hash = hash%MOD;
         }
+        return hash;
+    }
 	
 	public static TThreadPoolServer getServer(int Port,SortServiceHandler sortService) throws TTransportException
 	{
@@ -42,6 +42,17 @@ public class Util
 		return new TThreadPoolServer(args);
 	}
 
+	public static TThreadPoolServer getComputeServer(int Port,ComputeServiceHandler computeService) throws TTransportException
+	{
+		TServerTransport serverTransport    = new TServerSocket(Port);
+        TTransportFactory factory           = new TFramedTransport.Factory();
+        ComputeService.Processor processor  = new ComputeService.Processor(computeService);
+        TThreadPoolServer.Args args         = new TThreadPoolServer.Args(serverTransport);
+        args.processor(processor);
+        args.transportFactory(factory);
+		return new TThreadPoolServer(args);
+	}
+	
 	public static HashMap<String,String> getParameters(String filename)
 	{
 		BufferedReader br	= null;

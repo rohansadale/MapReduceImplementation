@@ -1,5 +1,7 @@
 import java.util.*;
 import java.io.*;
+import java.nio.file.*;
+import java.nio.charset.Charset;
 import java.lang.System;
 import java.lang.Runnable;
 import java.util.concurrent.*;
@@ -9,13 +11,13 @@ import org.apache.thrift.protocol.TProtocol;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.thrift.protocol.TBinaryProtocol;
 
-public class ComputeServiceHandler implements Compute.Iface{
+public class ComputeServiceHandler implements ComputeService.Iface{
 
 	private String INPUT_DIRECTORY_KEY = "";
 	private String INTERMEDIATE_DIRECTORY_KEY = "";
 	private String OUTPUT_DIRECTORY_KEY = "";
 
-	public ComputeServiceHandler(Node currentNode, String INPUT_DIRECTORY_KEY, String INTERMEDIATE_DIRECTORY_KEY, String OUTPUT_DIRECTORY_KEY){
+	public ComputeServiceHandler(String INPUT_DIRECTORY_KEY, String INTERMEDIATE_DIRECTORY_KEY, String OUTPUT_DIRECTORY_KEY){
 		this.INPUT_DIRECTORY_KEY = INPUT_DIRECTORY_KEY;
 		this.INTERMEDIATE_DIRECTORY_KEY = INTERMEDIATE_DIRECTORY_KEY;	
 		this.OUTPUT_DIRECTORY_KEY = OUTPUT_DIRECTORY_KEY;	
@@ -29,32 +31,35 @@ public class ComputeServiceHandler implements Compute.Iface{
 		long startTime = System.currentTimeMillis();
 		List<Integer> items = new ArrayList<>();
 
-		// Read input from file
-		for(String line : Files.readAllLines(Paths.get(INPUT_DIRECTORY_KEY + fileName))){
-			for(String part : line.split("\n")){
-				items.add(Integer.parseInt(part));
+		try
+		{
+			// Read input from file
+			for(String line : Files.readAllLines(Paths.get(INPUT_DIRECTORY_KEY + fileName),Charset.forName("US-ASCII"))){
+					for(String part : line.split("\n")){
+					items.add(Integer.parseInt(part));
+				}
 			}
+
+			Collections.sort(items);
+	
+			// Write output to file		
+			FileWriter fw = new FileWriter(INTERMEDIATE_DIRECTORY_KEY + fileName);
+			for(int i = 0 ; i < items.size(); i++)
+				fw.write(String.valueOf(items.get(i)) + "\n");
 		}
-
-		Arrays.sort(items);
-
-		// Write output to file		
-		FileWriter fw = new FileWriter(INTERMEDIATE_DIRECTORY_KEY + fileName);
-		for(int i = 0 ; i < items.size(); i++)
-			fw.write(String.valueOf(items[i]) + "\n");
-		
+		catch(IOException e){}
 		long stopTime = System.currentTimeMillis();
 		long elapsedTime = stopTime - startTime;
 
 		System.out.println("Chunk Sorted for " + fileName + ", Offset - " + offset + " and Time taken =" + elapsedTime);
-		return(new Time(filename, elapsedTime));		
+		return(new JobTime(fileName, elapsedTime));		
 	} 
 	
 
-	@Override
 	// Add two more parameters
 	//	1) Chunk no
 	//	2) Intermediate Merge or Final Merge
+	@Override
 	public JobTime doMerge(List<String> files){
 
 		long startTime = System.currentTimeMillis();	
@@ -62,6 +67,7 @@ public class ComputeServiceHandler implements Compute.Iface{
 		int [] numbers = new int[n];
 		BufferedReader[] fp = new BufferedReader[n];
 		
+		String outFileName = "m";
 		try{		
 		for(int i = 0; i < n; i++){
 //			String fileName = files[i];
@@ -73,7 +79,6 @@ public class ComputeServiceHandler implements Compute.Iface{
 				numbers[i] = Integer.MAX_VALUE; 
 		}
 
-		String outFileName = "m";
 		System.out.println("\nStarting Merge task for " + outFileName );
 		FileWriter fw = new FileWriter(outFileName);
 		PrintWriter pw = new PrintWriter(fw);
@@ -117,7 +122,7 @@ public class ComputeServiceHandler implements Compute.Iface{
 		long stopTime = System.currentTimeMillis();
 		long elapsedTime = stopTime - startTime;
 		System.out.println("Merge Completed! Time taken = " + elapsedTime);
-		return(new Time(filename, elapsedTime));
+		return(new JobTime(outFileName, elapsedTime));
 	}
 
 

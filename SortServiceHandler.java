@@ -124,7 +124,7 @@ public class SortServiceHandler implements SortService.Iface
 		List<String> intermediateFiles		= new ArrayList<String>();
 		for(int i=0;i<jobs.size();i++)
 		{
-			intermediateFiles.add(jobs.get(i).destFileName);
+			intermediateFiles.add(jobs.get(i).result.filename);
 			System.out.println("Processing of Task on node " + jobs.get(i).ip + " finished in " + jobs.get(i).duration + " milli-seconds");
 		}
 
@@ -157,7 +157,7 @@ public class SortServiceHandler implements SortService.Iface
 		Collections.shuffle(computeNodes);
 		String ip		= computeNodes.get(0).ip;
 		int port		= computeNodes.get(0).port;
-		String result	= "";
+		JobTime result	= null;
 
 		try
         {
@@ -172,7 +172,7 @@ public class SortServiceHandler implements SortService.Iface
        {
 			System.out.println(" =================== Unable to establish connection with Node " + ip + "... Exiting ... =================");
        }	
-	   return result;
+	   return result.filename;
 	}	
 
 	void reAssign(int idx)
@@ -225,7 +225,7 @@ public class SortServiceHandler implements SortService.Iface
 		public long duration;		
 		public String ip;
 		public int port;
-		public String destFileName;	
+		public JobTime result;
 
 		public sortJob(String filename,int offSet,int numToSort,String ip,int port)
 		{
@@ -235,7 +235,7 @@ public class SortServiceHandler implements SortService.Iface
 			this.duration		= 0;
 			this.ip				= ip;
 			this.port			= port;	
-			this.destFileName	= "";
+			this.result			= null;
 		}
 
 		public void run()
@@ -246,7 +246,7 @@ public class SortServiceHandler implements SortService.Iface
 				TProtocol protocol					= new TBinaryProtocol(new TFramedTransport(transport));
 				ComputeService.Client client		= new ComputeService.Client(protocol);
 				transport.open();
-				this.destFileName					= client.doSort(filename,offSet,numToSort);
+				this.result							= client.doSort(filename,offSet,numToSort);
 				transport.close();
 			}
 
