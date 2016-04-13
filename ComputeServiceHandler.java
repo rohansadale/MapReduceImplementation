@@ -29,25 +29,77 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 
 		System.out.println("\nStarting Sort task for " + fileName);
 		long startTime = System.currentTimeMillis();
-		List<Integer> items = new ArrayList<>();
 
-		try
-		{
-			// Read input from file
-			for(String line : Files.readAllLines(Paths.get(INPUT_DIRECTORY_KEY + fileName),Charset.forName("US-ASCII"))){
-					for(String part : line.split("\n")){
-					items.add(Integer.parseInt(part));
-				}
-			}
-
-			Collections.sort(items);
+		try{
+			// Reading File
+			RandomAccessFile file = new RandomAccessFile(INPUT_DIRECTORY_KEY + fileName, "r");
+			if(offset > 0)
+				file.seek(offset-1);		
+			else
+				file.seek(offset);		
 	
-			// Write output to file		
-			FileWriter fw = new FileWriter(INTERMEDIATE_DIRECTORY_KEY + fileName);
-			for(int i = 0 ; i < items.size(); i++)
-				fw.write(String.valueOf(items.get(i)) + "\n");
+			// Read offset-1 and offset byte from file. If space is present in either then skip the first number		
+			boolean startFlag = true;
+			byte [] tempStart = new byte[2];		
+			file.read(tempStart);
+			
+			// 32 is ASCII value of space		
+			if(tempStart[0] == 32 || tempStart[1] == 32 || offset == 0)
+				startFlag = false;
+	
+			// Read required number of bytes
+			file.seek(offset);
+			byte[] bytes = new byte[count];
+			file.read(bytes);
+			String s = new String(bytes, "UTF-8");
+
+	
+			// If last byte is not space, then read 3 more bytes after size. Search for space in it and then trim the number.
+			char last = s.charAt(s.length()-1);	
+			if(!(last == ' ')){
+				byte [] temp = new byte[3];
+				file.read(temp);
+				for(int i = 0; i < 3; i++){
+
+					// ASCII value 32:space and 10:endOfFile
+					if (temp[i] == 32 || temp[i] == 10){
+						while(i < 3)
+							temp[i++] = 32;
+					}
+				}
+				s = s + new String(temp, "UTF-8");
+			}	
+			
+			file.close();		
+	
+			// Split the string and sort 
+			String [] temp_numbers = s.trim().split(" ");
+		
+			int [] numbers = new int[temp_numbers.length];
+	
+			for(int i = 0; i < numbers.length; i++)
+				numbers[i] = Integer.parseInt(temp_numbers[i]);
+		
+			Arrays.sort(numbers);
+
+
+			FileWriter fw = new FileWriter(INTERMEDIATE_DIRECTORY_KEY + fileName + "_" + offset);
+
+			// Skip the first number if start flag is true	
+			int j = 0;
+			if (startFlag)
+				j++;
+			
+			for(int i = j; i < numbers.length; i++){
+				fw.write(numbers[i] + "\n");
+				//System.out.println(numbers[i]);
+			}			
+			fw.close();
 		}
-		catch(IOException e){}
+		catch(Exception e){
+			System.out.println("Error in writing to file");
+		}
+
 		long stopTime = System.currentTimeMillis();
 		long elapsedTime = stopTime - startTime;
 
