@@ -78,4 +78,18 @@ public class Util
 		}
 		return params;
 	}
+	
+	//Utility function to print nodes that are curently part of the system
+	public static void printNodeList(List<Node> activeNodes)
+	{
+		System.out.println("Currently Nodes connected to Server ... ");
+		System.out.println("---------------------------------------------------------");
+		System.out.println("        HostName               Port     	             ");
+		System.out.println("---------------------------------------------------------");
+		for(int i=0;i<activeNodes.size();i++)
+		{
+			System.out.println(activeNodes.get(i).ip + "    " + activeNodes.get(i).port);
+			System.out.println("---------------------------------------------------------");
+		}
+	}
 }

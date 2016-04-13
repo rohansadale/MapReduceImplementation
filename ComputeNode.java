@@ -39,8 +39,8 @@ public class ComputeNode{
 				}
 
 				if(targs.length >= 2){
-						CURRENT_NODE_PORT = Integer.parseInt(targs[0]);
 						CONFIG_FILE_NAME = targs[0];
+						CURRENT_NODE_PORT = Integer.parseInt(targs[1]);
 				}
 				else{
 						System.out.println("Config File Missing!");

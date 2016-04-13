@@ -17,7 +17,7 @@ public class SortServiceHandler implements SortService.Iface
 	private static String intermediateDirectory	= "";
 	private static String outputDirectory		= "";	
 	private static int replication				= 0;
-	private static int syncInterval				= 30000;
+	private static int healthCheckInterval		= 10000;
 	private static ArrayList<sortJob> jobs;
 
 	public SortServiceHandler(Node node,String inputDirectory,String intermediateDirectory,String outputDirectory,
@@ -43,7 +43,7 @@ public class SortServiceHandler implements SortService.Iface
 				{
         			try
 					{
-						Thread.sleep(syncInterval);
+						Thread.sleep(healthCheckInterval);
 						for(int i=0;i<computeNodes.size();)
 						{
 							boolean isAlive = isNodeAlive(computeNodes.get(i).ip,computeNodes.get(i).port);
@@ -63,6 +63,7 @@ public class SortServiceHandler implements SortService.Iface
 	{
 		if(null==node) return false;
 		computeNodes.add(node);
+		Util.getInstance().printNodeList(computeNodes);
 		return true;
 	}
 	
@@ -214,7 +215,7 @@ public class SortServiceHandler implements SortService.Iface
 		{
 			System.out.println(" =================== Unable to establish connection with Node " + ip + "... Exiting ... =================");
 		}	
-		return false;
+		return status;
 	}
 
 	static class sortJob extends Thread
