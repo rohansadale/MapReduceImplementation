@@ -47,7 +47,11 @@ public class SortServiceHandler implements SortService.Iface
 						for(int i=0;i<computeNodes.size();)
 						{
 							boolean isAlive = isNodeAlive(computeNodes.get(i).ip,computeNodes.get(i).port);
-							if(!isAlive) reAssign(i);
+							if(!isAlive) 
+							{
+								removeNode(i);
+								System.out.println("Removing " + computeNodes.get(i).ip + " from the system");
+							}
 							else i++;
 						}
 					}
@@ -94,7 +98,7 @@ public class SortServiceHandler implements SortService.Iface
 	
 		double fileSize		= sortFile.length();
 		int numTasks		= (int)Math.ceil(fileSize/chunkSize); 
-		System.out.println("To sort " + filename + " " + numTasks + " are produced");	
+		System.out.println("To sort " + filename + " " + numTasks + " Tasks are produced");	
 		
 		int offset					= 0;
 		for(int i=0;i<numTasks;i++)
@@ -102,7 +106,7 @@ public class SortServiceHandler implements SortService.Iface
 			Collections.shuffle(computeNodes);
 			for(int j=0;j<replication;j++)
 			{
-				sortJob job				= new sortJob(filename,offset,chunkSize,computeNodes.get(j).ip,computeNodes.get(j).port);
+				sortJob job				= new sortJob(i,filename,offset,chunkSize,computeNodes.get(j).ip,computeNodes.get(j).port);
 				jobs.add(job);	
 			}
 			offset		= offset + chunkSize;
@@ -112,21 +116,36 @@ public class SortServiceHandler implements SortService.Iface
 	}
 	
 	private JobStatus sortAndMerge(ArrayList< sortJob > jobs) throws TException
-	{		
-		try
+	{
+		for(int i=0;i<jobs.size();i++) 
 		{
-			for(int i=0;i<jobs.size();i++)
-					jobs.get(i).start();
-			for(int i=0;i<jobs.size();i++)
-					jobs.get(i).join();
+			System.out.println("Starting Job with id " + jobs.get(i).id + " on node " + jobs.get(i).ip);
+			jobs.get(i).start();
 		}
-		catch(InterruptedException e) {}
-	
+
+		while(true)
+		{
+			int finishedJobs	= 0;
+			for(int i=0;i<jobs.size();i++)
+			{
+				if(1==jobs.get(i).threadRunStatus) finishedJobs	= finishedJobs+1;
+				if(2==jobs.get(i).threadRunStatus) 
+				{
+					sortJob retry	= reAssign(jobs.get(i));
+					jobs.remove(i);
+					jobs.add(retry);
+					retry.start();
+				}
+			}
+			if(finishedJobs==jobs.size()) break;
+		}	
+		
+		System.out.println("Sorting Task finished!!");	
 		List<String> intermediateFiles		= new ArrayList<String>();
 		for(int i=0;i<jobs.size();i++)
 		{
 			intermediateFiles.add(jobs.get(i).result.filename);
-			System.out.println("Processing of Task on node " + jobs.get(i).ip + " finished in " + jobs.get(i).duration + " milli-seconds");
+			System.out.println("Processing of Task on node " + jobs.get(i).ip + " finished in " + jobs.get(i).result.time + " milli-seconds");
 		}
 
 		return mergeFiles(intermediateFiles);
@@ -136,16 +155,36 @@ public class SortServiceHandler implements SortService.Iface
 	{
 		JobStatus result = new JobStatus(false,"","");
 		System.out.println("Starting Merging files ..... ");
-		while(intermediateFiles.size()!=1)
+		System.out.println("Intermediate Files " + intermediateFiles.size());
+		Queue<String> q1					= new LinkedList<String>();
+		Queue<String> q2					= new LinkedList<String>();
+		
+		for(int i=0;i<intermediateFiles.size();i++) 
+			q1.add(intermediateFiles.get(i));
+		
+		while(!q1.isEmpty())
 		{
-			List<String> tFiles				= new ArrayList<String>();
-			for(int i=0;i<Math.min(mergeTaskSize,intermediateFiles.size());i++)
-				tFiles.add(intermediateFiles.get(i));
-			intermediateFiles.add(merge(tFiles));
-		}
+			if(q1.size()==1) break;
+			while(!q1.isEmpty())
+			{
+				List<String> tFiles             = new ArrayList<String>();
+				int initQueueSize				= q1.size();
+				for(int i=0;i<Math.min(mergeTaskSize,initQueueSize);i++)
+				{
+					tFiles.add(q1.peek());
+					q1.remove();
+				}		
+				q2.add(merge(tFiles));
+			}
+			while(!q2.isEmpty())
+			{
+				q1.add(q2.peek());
+				q2.remove();
+			}
+		}	
 		
 		result.status	= true;
-		result.filename	= intermediateFiles.get(0);
+		result.filename	= q1.peek();
 		System.out.println("Sorted output is stored in " + result.filename);
 		String absolutePath	= System.getProperty("user.dir");
 		new File(absolutePath+ "/" + intermediateDirectory + result.filename).renameTo(new File(absolutePath +"/" + outputDirectory + result.filename));
@@ -171,31 +210,15 @@ public class SortServiceHandler implements SortService.Iface
        }
        catch(TException x)
        {
-			System.out.println(" =================== Unable to establish connection with Node " + ip + "... Exiting ... =================");
+			System.out.println(" =================== Unable to establish connection with Node " + ip + " Merge Job Failed ... Exiting ... =================");
        }	
 	   return result.filename;
 	}	
 
-	void reAssign(int idx)
+	void removeNode(int idx)
 	{
-		int seed = (int)((long)System.currentTimeMillis() % 1000);
-		Random rnd = new Random(seed);
-
-		String requiredIP	= computeNodes.get(idx).ip;
 		System.out.println("Node with IP " + computeNodes.get(idx).ip + " failed !!!!!!!! Re-assigning its Task ...");
 		computeNodes.remove(idx);
-	
-		int i = 0;
-		while(i<jobs.size())
-		{
-			if(jobs.get(i).ip.equals(requiredIP)==true)
-			{
-				jobs.add(new sortJob(jobs.get(i).filename,jobs.get(i).offSet,jobs.get(i).numToSort,
-						computeNodes.get(rnd.nextInt(computeNodes.size())).ip,computeNodes.get(rnd.nextInt(computeNodes.size())).port));
-				jobs.remove(i);
-			}
-			i++;
-		}	
 	}
 
 	boolean isNodeAlive(String ip,int port)
@@ -213,9 +236,19 @@ public class SortServiceHandler implements SortService.Iface
 
 		catch(TException x)
 		{
-			System.out.println(" =================== Unable to establish connection with Node " + ip + "... Exiting ... =================");
+			System.out.println(" =================== Unable to establish connection with Node " + ip + " - Status Check failed ... Exiting ... =================");
 		}	
 		return status;
+	}
+
+	sortJob reAssign(sortJob job)
+	{
+		int seed 			= (int)((long)System.currentTimeMillis() % 1000);
+        Random rnd 			= new Random(seed);
+		int retry_task_idx  = rnd.nextInt(computeNodes.size());
+		System.out.println("Task with Id " + job.id + " will be re-assigned to node with IP " + computeNodes.get(retry_task_idx).ip);	
+		sortJob retry		= new sortJob(job.id,job.filename,job.offSet,job.numToSort,computeNodes.get(retry_task_idx).ip,computeNodes.get(retry_task_idx).port);
+		return retry;
 	}
 
 	static class sortJob extends Thread
@@ -227,16 +260,20 @@ public class SortServiceHandler implements SortService.Iface
 		public String ip;
 		public int port;
 		public JobTime result;
+		public int threadRunStatus;
+		public int id;
 
-		public sortJob(String filename,int offSet,int numToSort,String ip,int port)
+		public sortJob(int id,String filename,int offSet,int numToSort,String ip,int port)
 		{
-			this.filename		= filename;
-			this.offSet			= offSet;
-			this.numToSort		= numToSort;
-			this.duration		= 0;
-			this.ip				= ip;
-			this.port			= port;	
-			this.result			= null;
+			this.id					= id;
+			this.filename			= filename;
+			this.offSet				= offSet;
+			this.numToSort			= numToSort;
+			this.duration			= 0;
+			this.ip					= ip;
+			this.port				= port;	
+			this.result				= null;
+			this.threadRunStatus	= 0;
 		}
 
 		public void run()
@@ -249,12 +286,13 @@ public class SortServiceHandler implements SortService.Iface
 				transport.open();
 				this.result							= client.doSort(filename,offSet,numToSort);
 				transport.close();
+				this.threadRunStatus				= 1;
 			}
 
 			catch(TException x)
 			{
-				System.out.println(" =================== Unable to establish connection with Node " + ip + "... Exiting ... =================");
-				return;
+				System.out.println(" =================== Unable to establish connection with Node " + ip + " Sort Job Failed - Exiting ... =================");
+				this.threadRunStatus				= 2;
 			}	
 		}
 	}

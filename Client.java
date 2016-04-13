@@ -43,7 +43,7 @@ public class Client
 		}
 		catch(TException x)
 		{
-				System.out.println(" =================== Unable to establish connection with Coordinator ... Exiting ... =================");
+				System.out.println(" =================== Unable to establish connection with Server ... Exiting ... =================");
 		}
 		System.out.println("Status of the job is " + status.status);
 		System.out.println("Message :- " + status.message);

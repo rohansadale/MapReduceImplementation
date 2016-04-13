@@ -30,7 +30,12 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 
 		System.out.println("\nStarting Sort task for " + fileName);
 		long startTime = System.currentTimeMillis();
-
+		
+		try
+               {
+                       Thread.sleep(10000);
+               }
+               catch(InterruptedException ex){}
 		String resultFileName	 = "";
 		try{
 			// Reading File
@@ -118,10 +123,11 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 		int [] numbers = new int[n];
 		BufferedReader[] fp = new BufferedReader[n];
 		String outFileName = "merge_" + Util.hashFile(files);	
+		String absolutePath = System.getProperty("user.dir");
 
 		try{		
 			for(int i = 0; i < n; i++){
-				fp[i] = new BufferedReader(new FileReader(INTERMEDIATE_DIRECTORY_KEY + files.get(i)));
+				fp[i] = new BufferedReader(new FileReader(absolutePath + "/" +  INTERMEDIATE_DIRECTORY_KEY + files.get(i)));
 				String no = fp[i].readLine();
 				if(no != null)
 					numbers[i] = Integer.parseInt(no);
@@ -130,7 +136,7 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 			}
 	
 			System.out.println("\nStarting Merge task for " + outFileName );
-			FileWriter fw = new FileWriter(outFileName);
+			FileWriter fw = new FileWriter(absolutePath + "/" +  INTERMEDIATE_DIRECTORY_KEY + outFileName);
 			PrintWriter pw = new PrintWriter(fw);
 			
 			// count is the number of file pointers that are reading the file
@@ -164,7 +170,7 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 	
 			// Deleting intermediate sort/merge files
 			for(int i = 0; i < files.size(); i++){
-				File f = new File(INTERMEDIATE_DIRECTORY_KEY + files.get(i));
+				File f = new File(absolutePath + "/" + INTERMEDIATE_DIRECTORY_KEY + files.get(i));
 				f.delete();
 			}
 	
