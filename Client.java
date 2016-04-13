@@ -45,6 +45,8 @@ public class Client
 		{
 				System.out.println(" =================== Unable to establish connection with Coordinator ... Exiting ... =================");
 		}
+		System.out.println("Status of the job is " + status.status);
+		System.out.println("Message :- " + status.message);
 		System.out.println("Output file is " + status.filename);
 	}
 }

@@ -30,6 +30,7 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 		System.out.println("\nStarting Sort task for " + fileName);
 		long startTime = System.currentTimeMillis();
 
+		String resultFileName	 = "";
 		try{
 			// Reading File
 			RandomAccessFile file = new RandomAccessFile(INPUT_DIRECTORY_KEY + fileName, "r");
@@ -82,8 +83,8 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 		
 			Arrays.sort(numbers);
 
-
-			FileWriter fw = new FileWriter(INTERMEDIATE_DIRECTORY_KEY + fileName + "_" + offset);
+			resultFileName	= INTERMEDIATE_DIRECTORY_KEY + fileName + "_" + offset;
+			FileWriter fw = new FileWriter(resultFileName);
 
 			// Skip the first number if start flag is true	
 			int j = 0;
@@ -92,7 +93,6 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 			
 			for(int i = j; i < numbers.length; i++){
 				fw.write(numbers[i] + "\n");
-				//System.out.println(numbers[i]);
 			}			
 			fw.close();
 		}
@@ -104,7 +104,7 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 		long elapsedTime = stopTime - startTime;
 
 		System.out.println("Chunk Sorted for " + fileName + ", Offset - " + offset + " and Time taken =" + elapsedTime);
-		return(new JobTime(fileName, elapsedTime));		
+		return(new JobTime(fileName+"_"+offset, elapsedTime));		
 	} 
 	
 
