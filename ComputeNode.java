@@ -71,7 +71,7 @@ public class ComputeNode{
 										configParam.get(INTERMEDIATE_DIRECTORY_KEY),
 										configParam.get(OUTPUT_DIRECTORY_KEY));
 
-						TThreadPoolServer server 			= Util.getInstance().getComputeServer(Integer.parseInt(configParam.get(SERVER_PORT_KEY)),computeService);
+						TThreadPoolServer server 			= Util.getInstance().getComputeServer(CURRENT_NODE_PORT,computeService);
 						System.out.println("Starting Compute Node at " + CURRENT_NODE_IP + " and Port " + CURRENT_NODE_PORT + "  ....");
 						server.serve();
 				}
