@@ -92,4 +92,15 @@ public class Util
 			System.out.println("---------------------------------------------------------");
 		}
 	}
+
+        public static String hashFile(List<String> files){
+
+                long code = 0;
+                for(int i = 0 ; i < files.size(); i++){
+                        String fileName = files.get(i);
+                        code += Integer.parseInt(fileName.substring(fileName.lastIndexOf('_') + 1));
+                }
+                return String.valueOf(code);
+        }
+
 }

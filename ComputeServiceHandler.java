@@ -24,6 +24,7 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 	}
 
 
+	// Sort Task
 	@Override
 	public JobTime doSort(String fileName, int offset, int count){
 
@@ -108,9 +109,7 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 	} 
 	
 
-	// Add two more parameters
-	//	1) Chunk no
-	//	2) Intermediate Merge or Final Merge
+	// Merge Task
 	@Override
 	public JobTime doMerge(List<String> files){
 
@@ -118,52 +117,57 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 		int n = files.size();
 		int [] numbers = new int[n];
 		BufferedReader[] fp = new BufferedReader[n];
-		
-		String outFileName = "m";
+		String outFileName = "merge_" + Util.hashFile(files);	
+
 		try{		
-		for(int i = 0; i < n; i++){
-//			String fileName = files[i];
-			fp[i] = new BufferedReader(new FileReader(INTERMEDIATE_DIRECTORY_KEY + files.get(i)));
-			String no = fp[i].readLine();
-			if(no != null)
-				numbers[i] = Integer.parseInt(no);
-			else
-				numbers[i] = Integer.MAX_VALUE; 
-		}
-
-		System.out.println("\nStarting Merge task for " + outFileName );
-		FileWriter fw = new FileWriter(outFileName);
-		PrintWriter pw = new PrintWriter(fw);
-		
-		// count is the number of file pointers that are reading the file
-		int count = n;
-		while(count > 0){
-			int min = numbers[0];
-			int minFile = 0;
-
-			for(int j = 0; j < n; j++){
-				if(min > numbers[j]){
-					min = numbers[j];
-					minFile = j;
-				}					 
+			for(int i = 0; i < n; i++){
+				fp[i] = new BufferedReader(new FileReader(INTERMEDIATE_DIRECTORY_KEY + files.get(i)));
+				String no = fp[i].readLine();
+				if(no != null)
+					numbers[i] = Integer.parseInt(no);
+				else
+					numbers[i] = Integer.MAX_VALUE; 
 			}
-			pw.println(min);
-			String no = fp[minFile].readLine();
-			if(no != null){
-				numbers[minFile] = Integer.parseInt(no);
+	
+			System.out.println("\nStarting Merge task for " + outFileName );
+			FileWriter fw = new FileWriter(outFileName);
+			PrintWriter pw = new PrintWriter(fw);
+			
+			// count is the number of file pointers that are reading the file
+			int count = n;
+			while(count > 0){
+				int min = numbers[0];
+				int minFile = 0;
+	
+				for(int j = 0; j < n; j++){
+					if(min > numbers[j]){
+						min = numbers[j];
+						minFile = j;
+					}					 
+				}
+				pw.println(min);
+				String no = fp[minFile].readLine();
+				if(no != null){
+					numbers[minFile] = Integer.parseInt(no);
+				}
+				else{
+					numbers[minFile] = Integer.MAX_VALUE;
+					count--;
+				}		
 			}
-			else{
-				numbers[minFile] = Integer.MAX_VALUE;
-				count--;
+	
+			for(int i = 0; i < n; i++){
+				fp[i].close();
 			}		
-		}
-
-		for(int i = 0; i < n; i++){
-			fp[i].close();
-		}		
-		pw.close();
-		fw.close();
-
+			pw.close();
+			fw.close();
+	
+			// Deleting intermediate sort/merge files
+			for(int i = 0; i < files.size(); i++){
+				File f = new File(INTERMEDIATE_DIRECTORY_KEY + files.get(i));
+				f.delete();
+			}
+	
 		}
 		catch(IOException e){
 			System.out.println("Something wrong with Input");
@@ -182,5 +186,5 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 	public boolean ping(){
 		return true;
 	}
-		
+
 }
