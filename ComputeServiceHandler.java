@@ -50,7 +50,7 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 			boolean startFlag = true;
 			byte [] tempStart = new byte[2];		
 			file.read(tempStart);
-			
+		
 			// 32 is ASCII value of space		
 			if(tempStart[0] == 32 || tempStart[1] == 32 || offset == 0)
 				startFlag = false;
@@ -79,26 +79,24 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 			}	
 			
 			file.close();		
-	
+
 			// Split the string and sort 
 			String [] temp_numbers = s.trim().split(" ");
-		
-			int [] numbers = new int[temp_numbers.length];
-	
-			for(int i = 0; i < numbers.length; i++)
-				numbers[i] = Integer.parseInt(temp_numbers[i]);
-		
-			Arrays.sort(numbers);
-
-			resultFileName	= INTERMEDIATE_DIRECTORY_KEY + fileName + "_" + offset;
-			FileWriter fw = new FileWriter(resultFileName);
-
+			
 			// Skip the first number if start flag is true	
 			int j = 0;
 			if (startFlag)
 				j++;
+				
+			int [] numbers = new int[temp_numbers.length-j];
+			for(int i = j; i < temp_numbers.length; i++)
+				numbers[i-j] = Integer.parseInt(temp_numbers[i]);
+			Arrays.sort(numbers);
+
+			resultFileName	= INTERMEDIATE_DIRECTORY_KEY + fileName + "_" + offset;
+			FileWriter fw = new FileWriter(resultFileName);
 			
-			for(int i = j; i < numbers.length; i++){
+			for(int i = 0; i < numbers.length; i++){
 				fw.write(numbers[i] + "\n");
 			}			
 			fw.close();

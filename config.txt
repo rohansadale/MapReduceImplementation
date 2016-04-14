@@ -3,6 +3,6 @@ ServerPort:9082
 InputDirectory:Data/input/
 IntermediateDirectory:Data/intermediate/
 OutputDirectory:Data/output/
-ChunkSize:10
+ChunkSize:10000
 MergeTaskSize:8
 TaskReplication:1
