@@ -30,12 +30,13 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 
 		System.out.println("\nStarting Sort task for " + fileName);
 		long startTime = System.currentTimeMillis();
-		
+		/*		
 		try
                {
                        Thread.sleep(10000);
                }
                catch(InterruptedException ex){}
+		*/
 		String resultFileName	 = "";
 		try{
 			// Reading File
@@ -125,6 +126,14 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 		String outFileName = "merge_" + Util.hashFile(files);	
 		String absolutePath = System.getProperty("user.dir");
 
+		System.out.println("Merging Here !!!");
+		/*
+		try
+               {
+                       Thread.sleep(30000);
+               }
+               catch(InterruptedException ex){}
+		*/
 		try{		
 			for(int i = 0; i < n; i++){
 				fp[i] = new BufferedReader(new FileReader(absolutePath + "/" +  INTERMEDIATE_DIRECTORY_KEY + files.get(i)));
@@ -151,7 +160,7 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 						minFile = j;
 					}					 
 				}
-				pw.println(min);
+				if(min!=Integer.MAX_VALUE) pw.println(min);
 				String no = fp[minFile].readLine();
 				if(no != null){
 					numbers[minFile] = Integer.parseInt(no);

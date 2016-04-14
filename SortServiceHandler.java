@@ -49,8 +49,8 @@ public class SortServiceHandler implements SortService.Iface
 							boolean isAlive = isNodeAlive(computeNodes.get(i).ip,computeNodes.get(i).port);
 							if(!isAlive) 
 							{
-								removeNode(i);
 								System.out.println("Removing " + computeNodes.get(i).ip + " from the system");
+								removeNode(i);
 							}
 							else i++;
 						}
@@ -153,14 +153,15 @@ public class SortServiceHandler implements SortService.Iface
 	
 	private JobStatus mergeFiles(List<String> intermediateFiles) throws TException
 	{
-		JobStatus result = new JobStatus(false,"","");
+		JobStatus result 					= new JobStatus(false,"","");
 		System.out.println("Starting Merging files ..... ");
-		System.out.println("Intermediate Files " + intermediateFiles.size());
 		Queue<String> q1					= new LinkedList<String>();
 		Queue<String> q2					= new LinkedList<String>();
+		JobTime mergeJobStatus				= null;
+		int seed 							= (int)((long)System.currentTimeMillis() % 1000);
+        Random rnd 							= new Random(seed);
 		
-		for(int i=0;i<intermediateFiles.size();i++) 
-			q1.add(intermediateFiles.get(i));
+		for(int i=0;i<intermediateFiles.size();i++)  q1.add(intermediateFiles.get(i));
 		
 		while(!q1.isEmpty())
 		{
@@ -173,8 +174,19 @@ public class SortServiceHandler implements SortService.Iface
 				{
 					tFiles.add(q1.peek());
 					q1.remove();
-				}		
-				q2.add(merge(tFiles));
+				}
+				do
+				{
+					int merge_idx  		= rnd.nextInt(computeNodes.size());
+					System.out.println("Merge Request sent to node " + computeNodes.get(merge_idx).ip);
+					mergeJobStatus		= merge(tFiles,computeNodes.get(merge_idx).ip,computeNodes.get(merge_idx).port);
+					if(null==mergeJobStatus) 
+					{
+						System.out.println("Merge Request sent to node " + computeNodes.get(merge_idx).ip + "  Failed");
+						computeNodes.remove(merge_idx);
+					}
+				}while(mergeJobStatus==null);
+				q2.add(mergeJobStatus.filename);
 			}
 			while(!q2.isEmpty())
 			{
@@ -187,16 +199,38 @@ public class SortServiceHandler implements SortService.Iface
 		result.filename	= q1.peek();
 		System.out.println("Sorted output is stored in " + result.filename);
 		String absolutePath	= System.getProperty("user.dir");
+		processFile(absolutePath + "/" + intermediateDirectory + result.filename);
 		new File(absolutePath+ "/" + intermediateDirectory + result.filename).renameTo(new File(absolutePath +"/" + outputDirectory + result.filename));
 		return result;
 	}
 	
 
-	private String merge(List<String> intermediateFiles) throws TException
+	private void processFile(String filename)
 	{
-		Collections.shuffle(computeNodes);
-		String ip		= computeNodes.get(0).ip;
-		int port		= computeNodes.get(0).port;
+		try
+		{
+			BufferedReader reader					= new BufferedReader(new FileReader(filename));
+			String number							= "";
+			ArrayList<String> content				= new ArrayList<String>();
+			while((number = reader.readLine())!=null) content.add(number);
+			reader.close();
+	
+			PrintWriter pw							= new PrintWriter(new FileWriter(filename));
+			for(int i=0;i<content.size();i++)
+			{
+				pw.print(content.get(i));
+				if(i!=content.size()-1) pw.print(" ");
+			}
+			pw.close();
+		}
+		catch(IOException e)
+		{
+			System.out.println("Error occured while converting output file to space delimited " + e);
+		}
+	}
+
+	private JobTime merge(List<String> intermediateFiles,String ip,int port) throws TException
+	{
 		JobTime result	= null;
 
 		try
@@ -212,7 +246,7 @@ public class SortServiceHandler implements SortService.Iface
        {
 			System.out.println(" =================== Unable to establish connection with Node " + ip + " Merge Job Failed ... Exiting ... =================");
        }	
-	   return result.filename;
+	   return result;
 	}	
 
 	void removeNode(int idx)
