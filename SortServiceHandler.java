@@ -11,13 +11,19 @@ import org.apache.thrift.protocol.TBinaryProtocol;
 public class SortServiceHandler implements SortService.Iface
 {
 	List<Node> computeNodes;
-	private static int chunkSize				= 0;
-	private static int mergeTaskSize			= 0;
-	private static String inputDirectory		= "";
-	private static String intermediateDirectory	= "";
-	private static String outputDirectory		= "";	
-	private static int replication				= 0;
-	private static int healthCheckInterval		= 10000;
+	private static int chunkSize						= 0;
+	private static int mergeTaskSize					= 0;
+	private static String inputDirectory				= "";
+	private static String intermediateDirectory			= "";
+	private static String outputDirectory				= "";	
+	private static int replication						= 0;
+	private static int healthCheckInterval				= 10000;
+	private static int sortFailedJobs					= 0;
+	private static int mergeFailedJobs					= 0;
+	private static int mergeJobs						= 0;
+	private static HashMap<String,Long>	mergeDuration	= null;
+	private static HashMap<String,Integer> mergeCount	= null;
+	private static int initSystemSize					= 0;
 	private static ArrayList<sortJob> jobs;
 
 	public SortServiceHandler(Node node,String inputDirectory,String intermediateDirectory,String outputDirectory,
@@ -30,7 +36,13 @@ public class SortServiceHandler implements SortService.Iface
 		this.intermediateDirectory	= intermediateDirectory;
 		this.outputDirectory		= outputDirectory;
 		this.replication			= replication;
+		this.sortFailedJobs			= 0;
+		this.mergeFailedJobs		= 0;
+		this.mergeJobs				= 0;
+		this.initSystemSize			= 0;
 		jobs						= new ArrayList<sortJob>();
+		mergeDuration				= new HashMap<String,Long>();
+		mergeCount					= new HashMap<String,Integer>();
 	}
 	
 	public void healthCheck()
@@ -62,6 +74,17 @@ public class SortServiceHandler implements SortService.Iface
 		new Thread(syncThread).start();
 	}
 
+	private void clearVariables()
+	{
+		jobs.clear();
+		sortFailedJobs 		= 0;
+		mergeFailedJobs		= 0;
+		mergeJobs			= 0;	
+		initSystemSize		= computeNodes.size();	
+		mergeDuration		= new HashMap<String,Long>();
+		mergeCount			= new HashMap<String,Integer>();
+	}
+	
 	@Override
 	public boolean join(Node node) throws TException
 	{
@@ -81,7 +104,8 @@ public class SortServiceHandler implements SortService.Iface
 	public JobStatus doJob(String filename) throws TException
 	{
 		System.out.println("Request received for sorting file " + filename);
-		jobs.clear();
+		clearVariables();
+
 		JobStatus result = new JobStatus(false,"","");
 		if(0==computeNodes.size())
 		{
@@ -112,7 +136,57 @@ public class SortServiceHandler implements SortService.Iface
 			offset		= offset + chunkSize;
 		}	
 		
-		return sortAndMerge(jobs);
+		result			= sortAndMerge(jobs);
+		printSummary(jobs,mergeDuration,mergeCount);
+		return result;		
+	}
+
+	private void printSummary(ArrayList< sortJob > jobs,HashMap<String,Long> mergeDuration,HashMap<String,Integer> mergeCount)
+	{
+		HashMap<String,Long> taskSummary							= new HashMap<String,Long>();
+		HashMap<String,Integer> taskCount							= new HashMap<String,Integer>();
+		for(int i=0;i<jobs.size();i++)
+		{
+			if(taskSummary.containsKey(jobs.get(i).ip)==false)
+			{
+				taskSummary.put(jobs.get(i).ip,(long)0L);
+				taskCount.put(jobs.get(i).ip,0);
+			}
+			taskSummary.put(jobs.get(i).ip,taskSummary.get(jobs.get(i).ip) + jobs.get(i).result.time);
+			taskCount.put(jobs.get(i).ip,taskCount.get(jobs.get(i).ip)+1);
+		}
+
+		System.out.println("\n\nSummary of the Task:-");
+		System.out.println("Number of Nodes used for processing:- 		" + initSystemSize);
+		System.out.println("Number of Nodes failed during processing:- 	" + (initSystemSize-taskSummary.size()));
+		System.out.println("Number of Sort Jobs Spawned:- 			" + jobs.size()+sortFailedJobs);
+		System.out.println("Number of Sort Jobs failed:-  			" + sortFailedJobs);
+		System.out.println("Number of Merge Jobs Spawned:-			" + mergeJobs);
+		System.out.println("Number of Merge Jobs failed:-			" + mergeFailedJobs);
+		System.out.println("Summary of Sort Tasks by Compute Nodes:-	");
+		System.out.println("\n---------------------------------------------");
+		System.out.println("    HostName			Total Tasks	Total Time(in milli-seconds)  ");
+		Iterator it1	= taskSummary.entrySet().iterator();
+		Iterator it2    = taskCount.entrySet().iterator();
+		while(it1.hasNext())
+		{
+			Map.Entry p1 	= (Map.Entry)it1.next();
+			Map.Entry p2	= (Map.Entry)it2.next();
+			System.out.println(" " + p1.getKey() + " 	   " + taskCount.get(p1.getKey()) + " 		   " + p1.getValue());
+		}
+		System.out.println("---------------------------------------------\n");
+		System.out.println("Summary of Merge Tasks by Compute Nodes:-	");
+		System.out.println("\n---------------------------------------------");
+		System.out.println("    HostName			Total Tasks	Total Time(in milli-seconds)  ");
+		Iterator it3	= mergeDuration.entrySet().iterator();
+		Iterator it4    = mergeCount.entrySet().iterator();
+		while(it3.hasNext())
+		{
+			Map.Entry p1 	= (Map.Entry)it3.next();
+			Map.Entry p2	= (Map.Entry)it4.next();
+			System.out.println(" " + p1.getKey() + " 	   " + mergeCount.get(p1.getKey()) + " 		   " + p1.getValue());
+		}
+		System.out.println("---------------------------------------------\n");
 	}
 	
 	private JobStatus sortAndMerge(ArrayList< sortJob > jobs) throws TException
@@ -131,6 +205,7 @@ public class SortServiceHandler implements SortService.Iface
 				if(1==jobs.get(i).threadRunStatus) finishedJobs	= finishedJobs+1;
 				if(2==jobs.get(i).threadRunStatus) 
 				{
+					sortFailedJobs		= sortFailedJobs + 1;
 					sortJob retry	= reAssign(jobs.get(i));
 					jobs.remove(i);
 					jobs.add(retry);
@@ -170,6 +245,12 @@ public class SortServiceHandler implements SortService.Iface
 			{
 				List<String> tFiles             = new ArrayList<String>();
 				int initQueueSize				= q1.size();
+				if(1==initQueueSize)
+				{
+					q2.add(q1.peek());
+					q1.remove();
+					continue;
+				}
 				for(int i=0;i<Math.min(mergeTaskSize,initQueueSize);i++)
 				{
 					tFiles.add(q1.peek());
@@ -182,9 +263,21 @@ public class SortServiceHandler implements SortService.Iface
 					mergeJobStatus		= merge(tFiles,computeNodes.get(merge_idx).ip,computeNodes.get(merge_idx).port);
 					if(null==mergeJobStatus) 
 					{
+						mergeFailedJobs	= mergeFailedJobs+1;
 						System.out.println("Merge Request sent to node " + computeNodes.get(merge_idx).ip + "  Failed");
 						computeNodes.remove(merge_idx);
 					}
+					else
+					{
+						if(mergeCount.containsKey(computeNodes.get(merge_idx).ip)==false) 
+						{
+							mergeCount.put(computeNodes.get(merge_idx).ip,0);
+							mergeDuration.put(computeNodes.get(merge_idx).ip,(long)0L);
+						}
+						mergeCount.put(computeNodes.get(merge_idx).ip,mergeCount.get(computeNodes.get(merge_idx).ip)+1);
+						mergeDuration.put(computeNodes.get(merge_idx).ip,mergeCount.get(computeNodes.get(merge_idx).ip) + mergeJobStatus.time);
+					}	
+					mergeJobs			= mergeJobs+1;
 				}while(mergeJobStatus==null);
 				q2.add(mergeJobStatus.filename);
 			}

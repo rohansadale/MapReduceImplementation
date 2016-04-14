@@ -124,7 +124,6 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 		String outFileName = "merge_" + Util.hashFile(files);	
 		String absolutePath = System.getProperty("user.dir");
 
-		System.out.println("Merging Here !!!");
 		/*
 		try
                {
@@ -141,7 +140,6 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 				else
 					numbers[i] = Integer.MAX_VALUE; 
 			}
-	
 			System.out.println("\nStarting Merge task for " + outFileName );
 			FileWriter fw = new FileWriter(absolutePath + "/" +  INTERMEDIATE_DIRECTORY_KEY + outFileName);
 			PrintWriter pw = new PrintWriter(fw);
@@ -180,7 +178,6 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 				File f = new File(absolutePath + "/" + INTERMEDIATE_DIRECTORY_KEY + files.get(i));
 				f.delete();
 			}
-	
 		}
 		catch(IOException e){
 			System.out.println("Something wrong with Input");
