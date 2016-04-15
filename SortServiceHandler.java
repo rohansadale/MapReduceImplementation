@@ -261,10 +261,15 @@ public class SortServiceHandler implements SortService.Iface
 					int merge_idx  		= rnd.nextInt(computeNodes.size());
 					System.out.println("Merge Request sent to node " + computeNodes.get(merge_idx).ip);
 					mergeJobStatus		= merge(tFiles,computeNodes.get(merge_idx).ip,computeNodes.get(merge_idx).port);
-					if(null==mergeJobStatus.filename) 
+					if(mergeJobStatus.time <= 0)
 					{
 						mergeFailedJobs	= mergeFailedJobs+1;
 						System.out.println("Merge Request sent to node " + computeNodes.get(merge_idx).ip + "  Failed");
+						if(0==mergeJobStatus.time) 
+						{
+							System.out.println("Removed Node ...");
+							computeNodes.remove(merge_idx);
+						}
 					}
 					else
 					{
@@ -277,7 +282,7 @@ public class SortServiceHandler implements SortService.Iface
 						mergeDuration.put(computeNodes.get(merge_idx).ip,mergeCount.get(computeNodes.get(merge_idx).ip) + mergeJobStatus.time);
 					}	
 					mergeJobs			= mergeJobs+1;
-				}while(mergeJobStatus.filename==null);
+				}while(mergeJobStatus.time<=0);
 				q2.add(mergeJobStatus.filename);
 			}
 			while(!q2.isEmpty())
@@ -297,8 +302,7 @@ public class SortServiceHandler implements SortService.Iface
 	
 	private JobTime merge(List<String> intermediateFiles,String ip,int port) throws TException
 	{
-		JobTime result	= null;
-
+		JobTime result	= new JobTime("",(long)0);
 		try
         {
           	TTransport transport                = new TSocket(ip,port);
@@ -310,8 +314,7 @@ public class SortServiceHandler implements SortService.Iface
        }
        catch(TException x)
        {
-			x.printStackTrace();
-       }	
+       }
 	   return result;
 	}	
 
@@ -386,10 +389,10 @@ public class SortServiceHandler implements SortService.Iface
 				transport.open();
 				this.result							= client.doSort(filename,offSet,numToSort);
 				transport.close();
-				if(this.result.filename==null) 
+				if(this.result.time==-1)
 					this.threadRunStatus = 2;
 				else 
-					this.threadRunStatus				= 1;
+					this.threadRunStatus = 1;
 			}
 
 			catch(TException x)

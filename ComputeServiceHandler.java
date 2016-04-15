@@ -35,7 +35,7 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 		if(curProbability  < this.failProbability)
 		{
 			System.out.println("Failing this Task as random number generated is less than fail probability ...");
-			return new JobTime(null,(long)0);
+			return new JobTime("",(long)-1);
 		}
 
 		System.out.println("\nStarting Sort task for " + fileName);
@@ -122,87 +122,6 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 		return(new JobTime(fileName+"_"+offset, elapsedTime));		
 	} 
 	
-
-/*
-	// Merge Task
-	@Override
-	public JobTime doMerge(List<String> files){
-
-		long startTime = System.currentTimeMillis();	
-		int n = files.size();
-		int [] numbers = new int[n];
-		BufferedReader[] fp = new BufferedReader[n];
-		String outFileName = "merge_" + Util.hashFile(files);	
-		String absolutePath = System.getProperty("user.dir");
-
-		
-//		try
-//               {
-//                       Thread.sleep(30000);
-//               }
-//               catch(InterruptedException ex){}
-		
-		try{		
-			for(int i = 0; i < n; i++){
-				fp[i] = new BufferedReader(new FileReader(absolutePath + "/" +  INTERMEDIATE_DIRECTORY_KEY + files.get(i)));
-				String no = fp[i].readLine();
-				if(no != null)
-					numbers[i] = Integer.parseInt(no);
-				else
-					numbers[i] = Integer.MAX_VALUE; 
-			}
-			System.out.println("\nStarting Merge task for " + outFileName );
-			FileWriter fw = new FileWriter(absolutePath + "/" +  INTERMEDIATE_DIRECTORY_KEY + outFileName);
-			PrintWriter pw = new PrintWriter(fw);
-			
-			// count is the number of file pointers that are reading the file
-			int count = n;
-			while(count > 0){
-				int min = numbers[0];
-				int minFile = 0;
-	
-				for(int j = 0; j < n; j++){
-					if(min > numbers[j]){
-						min = numbers[j];
-						minFile = j;
-					}					 
-				}
-				if(min!=Integer.MAX_VALUE) pw.println(min);
-				String no = fp[minFile].readLine();
-				if(no != null){
-					numbers[minFile] = Integer.parseInt(no);
-				}
-				else{
-					numbers[minFile] = Integer.MAX_VALUE;
-					count--;
-				}		
-			}
-	
-			for(int i = 0; i < n; i++){
-				fp[i].close();
-			}		
-			pw.close();
-			fw.close();
-	
-			// Deleting intermediate sort/merge files
-			for(int i = 0; i < files.size(); i++){
-				File f = new File(absolutePath + "/" + INTERMEDIATE_DIRECTORY_KEY + files.get(i));
-				f.delete();
-			}
-		}
-		catch(IOException e){
-			System.out.println("Something wrong with Input");
-			e.printStackTrace();
-		}
-
-		// Stop time
-		long stopTime = System.currentTimeMillis();
-		long elapsedTime = stopTime - startTime;
-		System.out.println("Merge Completed! Time taken = " + elapsedTime);
-		return(new JobTime(outFileName, elapsedTime));
-	}
-
-*/
 	@Override
 	public boolean ping(){
 		return true;
@@ -214,11 +133,10 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 	public JobTime doMerge(List<String> files){
 	
         float curProbability                = rnd.nextFloat();
-		System.out.println(curProbability);
 		if(curProbability  < this.failProbability)	
 		{
 			System.out.println("Failing this Task as random number generated is less than fail probability ...");
-			return new JobTime(null,(long)0);
+			return new JobTime("",(long)-1);
 		}
 
 		long startTime = System.currentTimeMillis();	
