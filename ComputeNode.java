@@ -52,8 +52,9 @@ public class ComputeNode{
 
 				try{
 						// Establishing connection with Master and joining the system
-						TTransport transport 				= new TSocket(configParam.get(SERVER_IP_KEY), Integer.parseInt(configParam.get(SERVER_PORT_KEY)));
-						TProtocol protocol 					= new TBinaryProtocol(new TFramedTransport(transport));
+						TSocket socket						= new TSocket(configParam.get(SERVER_IP_KEY),Integer.parseInt(configParam.get(SERVER_PORT_KEY)),120*1000);
+						TTransport transport 				= new TFramedTransport(socket,Util.getInstance().Transport_Size);
+						TProtocol protocol 					= new TBinaryProtocol(transport);
 						SortService.Client client 			= new SortService.Client(protocol);
 						transport.open();
 						hasRegistered 						= client.join(new Node(CURRENT_NODE_IP,CURRENT_NODE_PORT));

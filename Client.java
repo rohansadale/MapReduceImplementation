@@ -34,8 +34,9 @@ public class Client
 		HashMap<String,String> configParam  	= Util.getInstance().getParameters(CONFIG_FILE_NAME);
 		try
 		{
-			TTransport transport				= new TSocket(configParam.get(COORDINATOR_IP_KEY),Integer.parseInt(configParam.get(COORDINATOR_PORT_KEY)));
-			TProtocol protocol					= new TBinaryProtocol(new TFramedTransport(transport));
+			TSocket socket						= new TSocket(configParam.get(COORDINATOR_IP_KEY),Integer.parseInt(configParam.get(COORDINATOR_PORT_KEY)),120*1000);
+			TTransport transport				= new TFramedTransport(socket,Util.getInstance().Transport_Size);
+			TProtocol protocol					= new TBinaryProtocol(transport);
 			SortService.Client client           = new SortService.Client(protocol);
             transport.open();
             status								= client.doJob(inputFile);

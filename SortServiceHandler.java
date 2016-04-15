@@ -159,7 +159,7 @@ public class SortServiceHandler implements SortService.Iface
 		System.out.println("\n\nSummary of the Task:-");
 		System.out.println("Number of Nodes used for processing:- 		" + initSystemSize);
 		System.out.println("Number of Nodes failed during processing:- 	" + (initSystemSize-taskSummary.size()));
-		System.out.println("Number of Sort Jobs Spawned:- 			" + jobs.size()+sortFailedJobs);
+		System.out.println("Number of Sort Jobs Spawned:- 			" + (jobs.size()+sortFailedJobs));
 		System.out.println("Number of Sort Jobs failed:-  			" + sortFailedJobs);
 		System.out.println("Number of Merge Jobs Spawned:-			" + mergeJobs);
 		System.out.println("Number of Merge Jobs failed:-			" + mergeFailedJobs);
@@ -338,6 +338,7 @@ public class SortServiceHandler implements SortService.Iface
        catch(TException x)
        {
 			System.out.println(" =================== Unable to establish connection with Node " + ip + " Merge Job Failed ... Exiting ... =================");
+			x.printStackTrace();
        }	
 	   return result;
 	}	

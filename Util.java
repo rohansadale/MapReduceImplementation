@@ -8,8 +8,9 @@ import org.apache.thrift.protocol.TBinaryProtocol;
 
 public class Util
 {
-	private static int MOD 		= 107;
-	private static Util util 	= null;
+	private static int MOD 				= 107;
+	private static Util util 			= null;
+	public static int Transport_Size	= 512*1024*1024;
 
 	//Creating Singleton instance of the class
 	public static Util getInstance()
@@ -33,23 +34,25 @@ public class Util
 	
 	public static TThreadPoolServer getServer(int Port,SortServiceHandler sortService) throws TTransportException
 	{
-		TServerTransport serverTransport    = new TServerSocket(Port);
-        TTransportFactory factory           = new TFramedTransport.Factory();
+		TServerTransport serverTransport    = new TServerSocket(Port,120*1000);
+        TTransportFactory factory           = new TFramedTransport.Factory(Transport_Size);
         SortService.Processor processor   	= new SortService.Processor(sortService);
         TThreadPoolServer.Args args         = new TThreadPoolServer.Args(serverTransport);
         args.processor(processor);
         args.transportFactory(factory);
+		args.maxWorkerThreads(10000);
 		return new TThreadPoolServer(args);
 	}
 
 	public static TThreadPoolServer getComputeServer(int Port,ComputeServiceHandler computeService) throws TTransportException
 	{
-		TServerTransport serverTransport    = new TServerSocket(Port);
-        TTransportFactory factory           = new TFramedTransport.Factory();
+		TServerTransport serverTransport    = new TServerSocket(Port,120*1000);
+        TTransportFactory factory           = new TFramedTransport.Factory(Transport_Size);
         ComputeService.Processor processor  = new ComputeService.Processor(computeService);
         TThreadPoolServer.Args args         = new TThreadPoolServer.Args(serverTransport);
         args.processor(processor);
         args.transportFactory(factory);
+		args.maxWorkerThreads(10000);
 		return new TThreadPoolServer(args);
 	}
 	
