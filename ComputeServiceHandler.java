@@ -16,17 +16,27 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 	private String INPUT_DIRECTORY_KEY = "";
 	private String INTERMEDIATE_DIRECTORY_KEY = "";
 	private String OUTPUT_DIRECTORY_KEY = "";
+	private float failProbability = (float)0.0;	
+    Random rnd                          = new Random();
 
-	public ComputeServiceHandler(String INPUT_DIRECTORY_KEY, String INTERMEDIATE_DIRECTORY_KEY, String OUTPUT_DIRECTORY_KEY){
+	public ComputeServiceHandler(String INPUT_DIRECTORY_KEY, String INTERMEDIATE_DIRECTORY_KEY, String OUTPUT_DIRECTORY_KEY,float failProbability){
 		this.INPUT_DIRECTORY_KEY = INPUT_DIRECTORY_KEY;
 		this.INTERMEDIATE_DIRECTORY_KEY = INTERMEDIATE_DIRECTORY_KEY;	
 		this.OUTPUT_DIRECTORY_KEY = OUTPUT_DIRECTORY_KEY;	
+		this.failProbability = failProbability;
 	}
 
 
 	// Sort Task
 	@Override
-	public JobTime doSort(String fileName, int offset, int count){
+	public JobTime doSort(String fileName, int offset, int count)
+	{
+		float curProbability				= rnd.nextFloat();
+		if(curProbability  < this.failProbability)
+		{
+			System.out.println("Failing this Task as random number generated is less than fail probability ...");
+			return new JobTime(null,(long)0);
+		}
 
 		System.out.println("\nStarting Sort task for " + fileName);
 		long startTime = System.currentTimeMillis();
@@ -202,6 +212,14 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 	// Merge Task
 	@Override
 	public JobTime doMerge(List<String> files){
+	
+        float curProbability                = rnd.nextFloat();
+		System.out.println(curProbability);
+		if(curProbability  < this.failProbability)	
+		{
+			System.out.println("Failing this Task as random number generated is less than fail probability ...");
+			return new JobTime(null,(long)0);
+		}
 
 		long startTime = System.currentTimeMillis();	
 		int n = files.size();

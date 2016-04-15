@@ -21,6 +21,7 @@ public class Server
 	private static String CHUNK_SIZE_KEY				= "ChunkSize";
 	private static String MERGE_SIZE_KEY				= "MergeTaskSize";
 	private static String TASK_REPLICATION_KEY			= "TaskReplication";
+	private static String FAIL_PROBABILITY_KEY			= "FailProbability"; 
 	
 	public static void main(String targs[]) throws TException
 	{

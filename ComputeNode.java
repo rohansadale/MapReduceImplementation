@@ -24,7 +24,7 @@ public class ComputeNode{
 		private static String CHUNK_SIZE_KEY = "ChunkSize";
 		private static String MERGE_SIZE_KEY = "MergeTaskSize";
 		private static List<Node> activeNodes = null;
-
+		private static String FAIL_PROBABILITY_KEY = "FailProbability";
 
 		public static void main(String targs[]) throws TException{
 				try{
@@ -70,7 +70,8 @@ public class ComputeNode{
 						// Handler Code here
 						ComputeServiceHandler computeService = new ComputeServiceHandler(configParam.get(INPUT_DIRECTORY_KEY),
 										configParam.get(INTERMEDIATE_DIRECTORY_KEY),
-										configParam.get(OUTPUT_DIRECTORY_KEY));
+										configParam.get(OUTPUT_DIRECTORY_KEY),
+										Float.parseFloat(configParam.get(FAIL_PROBABILITY_KEY)));
 
 						TThreadPoolServer server 			= Util.getInstance().getComputeServer(CURRENT_NODE_PORT,computeService);
 						System.out.println("Starting Compute Node at " + CURRENT_NODE_IP + " and Port " + CURRENT_NODE_PORT + "  ....");

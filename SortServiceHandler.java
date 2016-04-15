@@ -261,11 +261,10 @@ public class SortServiceHandler implements SortService.Iface
 					int merge_idx  		= rnd.nextInt(computeNodes.size());
 					System.out.println("Merge Request sent to node " + computeNodes.get(merge_idx).ip);
 					mergeJobStatus		= merge(tFiles,computeNodes.get(merge_idx).ip,computeNodes.get(merge_idx).port);
-					if(null==mergeJobStatus) 
+					if(null==mergeJobStatus.filename) 
 					{
 						mergeFailedJobs	= mergeFailedJobs+1;
 						System.out.println("Merge Request sent to node " + computeNodes.get(merge_idx).ip + "  Failed");
-						computeNodes.remove(merge_idx);
 					}
 					else
 					{
@@ -278,7 +277,7 @@ public class SortServiceHandler implements SortService.Iface
 						mergeDuration.put(computeNodes.get(merge_idx).ip,mergeCount.get(computeNodes.get(merge_idx).ip) + mergeJobStatus.time);
 					}	
 					mergeJobs			= mergeJobs+1;
-				}while(mergeJobStatus==null);
+				}while(mergeJobStatus.filename==null);
 				q2.add(mergeJobStatus.filename);
 			}
 			while(!q2.isEmpty())
@@ -292,36 +291,10 @@ public class SortServiceHandler implements SortService.Iface
 		result.filename	= q1.peek();
 		System.out.println("Sorted output is stored in " + result.filename);
 		String absolutePath	= System.getProperty("user.dir");
-//		processFile(absolutePath + "/" + intermediateDirectory + result.filename);
 		new File(absolutePath+ "/" + intermediateDirectory + result.filename).renameTo(new File(absolutePath +"/" + outputDirectory + result.filename));
 		return result;
 	}
 	
-
-	private void processFile(String filename)
-	{
-		try
-		{
-			BufferedReader reader					= new BufferedReader(new FileReader(filename));
-			String number							= "";
-			ArrayList<String> content				= new ArrayList<String>();
-			while((number = reader.readLine())!=null) content.add(number);
-			reader.close();
-	
-			PrintWriter pw							= new PrintWriter(new FileWriter(filename));
-			for(int i=0;i<content.size();i++)
-			{
-				pw.print(content.get(i));
-				if(i!=content.size()-1) pw.print(" ");
-			}
-			pw.close();
-		}
-		catch(IOException e)
-		{
-			System.out.println("Error occured while converting output file to space delimited " + e);
-		}
-	}
-
 	private JobTime merge(List<String> intermediateFiles,String ip,int port) throws TException
 	{
 		JobTime result	= null;
@@ -337,7 +310,6 @@ public class SortServiceHandler implements SortService.Iface
        }
        catch(TException x)
        {
-			System.out.println(" =================== Unable to establish connection with Node " + ip + " Merge Job Failed ... Exiting ... =================");
 			x.printStackTrace();
        }	
 	   return result;
@@ -414,12 +386,14 @@ public class SortServiceHandler implements SortService.Iface
 				transport.open();
 				this.result							= client.doSort(filename,offSet,numToSort);
 				transport.close();
-				this.threadRunStatus				= 1;
+				if(this.result.filename==null) 
+					this.threadRunStatus = 2;
+				else 
+					this.threadRunStatus				= 1;
 			}
 
 			catch(TException x)
 			{
-				System.out.println(" =================== Unable to establish connection with Node " + ip + " Sort Job Failed - Exiting ... =================");
 				this.threadRunStatus				= 2;
 			}	
 		}
