@@ -292,7 +292,7 @@ public class SortServiceHandler implements SortService.Iface
 		result.filename	= q1.peek();
 		System.out.println("Sorted output is stored in " + result.filename);
 		String absolutePath	= System.getProperty("user.dir");
-		processFile(absolutePath + "/" + intermediateDirectory + result.filename);
+//		processFile(absolutePath + "/" + intermediateDirectory + result.filename);
 		new File(absolutePath+ "/" + intermediateDirectory + result.filename).renameTo(new File(absolutePath +"/" + outputDirectory + result.filename));
 		return result;
 	}

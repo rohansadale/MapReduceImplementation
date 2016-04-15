@@ -97,7 +97,7 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 			FileWriter fw = new FileWriter(resultFileName);
 			
 			for(int i = 0; i < numbers.length; i++){
-				fw.write(numbers[i] + "\n");
+				fw.write(numbers[i] + " ");
 			}			
 			fw.close();
 		}
@@ -113,6 +113,7 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 	} 
 	
 
+/*
 	// Merge Task
 	@Override
 	public JobTime doMerge(List<String> files){
@@ -124,13 +125,13 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 		String outFileName = "merge_" + Util.hashFile(files);	
 		String absolutePath = System.getProperty("user.dir");
 
-		/*
-		try
-               {
-                       Thread.sleep(30000);
-               }
-               catch(InterruptedException ex){}
-		*/
+		
+//		try
+//               {
+//                       Thread.sleep(30000);
+//               }
+//               catch(InterruptedException ex){}
+		
 		try{		
 			for(int i = 0; i < n; i++){
 				fp[i] = new BufferedReader(new FileReader(absolutePath + "/" +  INTERMEDIATE_DIRECTORY_KEY + files.get(i)));
@@ -191,10 +192,93 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 		return(new JobTime(outFileName, elapsedTime));
 	}
 
-
+*/
 	@Override
 	public boolean ping(){
 		return true;
 	}
+
+
+	// Merge Task
+	@Override
+	public JobTime doMerge(List<String> files){
+
+		long startTime = System.currentTimeMillis();	
+		int n = files.size();
+		int [] numbers = new int[n];
+		Scanner[] fp = new Scanner[n];
+		String outFileName = "merge_" + Util.hashFile(files);	
+		String absolutePath = System.getProperty("user.dir");
+
+		/*
+		try
+               {
+                       Thread.sleep(30000);
+               }
+               catch(InterruptedException ex){}
+		*/
+		try{		
+			for(int i = 0; i < n; i++){
+				fp[i] = new Scanner(new File(absolutePath + "/" +  INTERMEDIATE_DIRECTORY_KEY + files.get(i)));
+				if(fp[i].hasNextInt()){
+					numbers[i] = fp[i].nextInt();						 
+				}
+				else{
+					numbers[i] = Integer.MAX_VALUE;
+				}
+			}
+
+			System.out.println("\nStarting Merge task for " + outFileName );
+			FileWriter fw = new FileWriter(absolutePath + "/" +  INTERMEDIATE_DIRECTORY_KEY + outFileName);
+			PrintWriter pw = new PrintWriter(fw);
+			
+			// count is the number of file pointers that are reading the file
+			int count = n;
+			while(count > 0){
+				int min = numbers[0];
+				int minFile = 0;
+	
+				for(int j = 0; j < n; j++){
+					if(min > numbers[j]){
+						min = numbers[j];
+						minFile = j;
+					}					 
+				}
+				if(min!=Integer.MAX_VALUE) 
+					pw.print(String.valueOf(min) + " ");
+				
+				if(fp[minFile].hasNextInt()){
+					numbers[minFile] = fp[minFile].nextInt();
+				}
+				else{
+					numbers[minFile] = Integer.MAX_VALUE;
+					count--;
+				}		
+			}
+	
+			for(int i = 0; i < n; i++){
+				fp[i].close();
+			}		
+			pw.close();
+			fw.close();
+	
+			// Deleting intermediate sort/merge files
+			for(int i = 0; i < files.size(); i++){
+				File f = new File(absolutePath + "/" + INTERMEDIATE_DIRECTORY_KEY + files.get(i));
+				f.delete();
+			}
+		}
+		catch(IOException e){
+			System.out.println("Something wrong with Input");
+			e.printStackTrace();
+		}
+
+		// Stop time
+		long stopTime = System.currentTimeMillis();
+		long elapsedTime = stopTime - startTime;
+		System.out.println("Merge Completed! Time taken = " + elapsedTime);
+		return(new JobTime(outFileName, elapsedTime));
+	}
+
 
 }
