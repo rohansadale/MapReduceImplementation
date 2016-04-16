@@ -25,6 +25,7 @@ public class SortServiceHandler implements SortService.Iface
 	private static HashMap<String,Integer> mergeCount	= null;
 	private static int initSystemSize					= 0;
 	private static ArrayList<sortJob> jobs;
+	private static ArrayList<mergeJob> mjobs;
 
 	public SortServiceHandler(Node node,String inputDirectory,String intermediateDirectory,String outputDirectory,
 							int chunkSize,int mergeTaskSize,int replication)
@@ -41,6 +42,7 @@ public class SortServiceHandler implements SortService.Iface
 		this.mergeJobs				= 0;
 		this.initSystemSize			= 0;
 		jobs						= new ArrayList<sortJob>();
+		mjobs						= new ArrayList<mergeJob>();
 		mergeDuration				= new HashMap<String,Long>();
 		mergeCount					= new HashMap<String,Integer>();
 	}
@@ -77,6 +79,7 @@ public class SortServiceHandler implements SortService.Iface
 	private void clearVariables()
 	{
 		jobs.clear();
+		mjobs.clear();
 		sortFailedJobs 		= 0;
 		mergeFailedJobs		= 0;
 		mergeJobs			= 0;	
@@ -206,7 +209,7 @@ public class SortServiceHandler implements SortService.Iface
 				if(2==jobs.get(i).threadRunStatus) 
 				{
 					sortFailedJobs		= sortFailedJobs + 1;
-					sortJob retry	= reAssign(jobs.get(i));
+					sortJob retry	= reAssignSortJob(jobs.get(i));
 					jobs.remove(i);
 					jobs.add(retry);
 					retry.start();
@@ -230,175 +233,129 @@ public class SortServiceHandler implements SortService.Iface
 	{
 		JobStatus result 					= new JobStatus(false,"","");
 		System.out.println("Starting Merging files ..... ");
-		Queue<String> q1					= new LinkedList<String>();
-		Queue<String> q2					= new LinkedList<String>();
-		JobTime mergeJobStatus				= null;
+		
 		int seed 							= (int)((long)System.currentTimeMillis() % 1000);
         Random rnd 							= new Random(seed);
-		
-		for(int i=0;i<intermediateFiles.size();i++)  q1.add(intermediateFiles.get(i));
-		
-		while(!q1.isEmpty())
-		{
-			if(q1.size()==1) break;
-			while(!q1.isEmpty())
+		mergeJobs							= 0;	
+		while(true)
+		{	
+			mjobs.clear();
+			int finishedJobs					= 0;
+			int task_node_idx					= rnd.nextInt(computeNodes.size());
+			System.out.println("Started Fresh Round of Merging ....");
+			for(int i=0;i<intermediateFiles.size();i=i+mergeTaskSize)
 			{
-				List<String> tFiles             = new ArrayList<String>();
-				int initQueueSize				= q1.size();
-				if(1==initQueueSize)
+				List<String> tFiles					= new ArrayList<String>();
+				for(int j=i;j<i+mergeTaskSize && j<intermediateFiles.size();j++) 
+					tFiles.add(intermediateFiles.get(j));
+				mergeJob cmergeJob				= new mergeJob(i,tFiles,computeNodes.get(task_node_idx).ip,computeNodes.get(task_node_idx).port);
+				mjobs.add(cmergeJob);
+			}	
+			
+			for(int i=0;i<mjobs.size();i++) mjobs.get(i).start();
+			while(true)
+			{
+				finishedJobs		= 0;
+				for(int i=0;i<mjobs.size();i++)
 				{
-					q2.add(q1.peek());
-					q1.remove();
-					continue;
+					if(1==mjobs.get(i).threadRunStatus) finishedJobs = finishedJobs+1;
+        	    	if(2==mjobs.get(i).threadRunStatus)
+        	   	 	{
+						mergeJobs			= mergeJobs+1;
+						mergeFailedJobs  	= mergeFailedJobs + 1;
+            	    	mergeJob retry   	= reAssignMergeJob(mjobs.get(i));
+                		mjobs.remove(i);
+                		mjobs.add(retry);
+                		retry.start();
+        			}
 				}
-				for(int i=0;i<Math.min(mergeTaskSize,initQueueSize);i++)
-				{
-					tFiles.add(q1.peek());
-					q1.remove();
-				}
-				do
-				{
-					int merge_idx  		= rnd.nextInt(computeNodes.size());
-					System.out.println("Merge Request sent to node " + computeNodes.get(merge_idx).ip);
-					mergeJobStatus		= merge(tFiles,computeNodes.get(merge_idx).ip,computeNodes.get(merge_idx).port);
-					if(mergeJobStatus.time <= 0)
+				if(finishedJobs==mjobs.size()) break;
+			}
+			intermediateFiles.clear();
+			mergeJobs						= mergeJobs + mjobs.size();
+			for(int i=0;i<mjobs.size();i++) 
+			{
+					if(mergeCount.containsKey(mjobs.get(i).ip)==false) 
 					{
-						mergeFailedJobs	= mergeFailedJobs+1;
-						System.out.println("Merge Request sent to node " + computeNodes.get(merge_idx).ip + "  Failed");
-						if(0==mergeJobStatus.time) 
-						{
-							System.out.println("Removed Node ...");
-							computeNodes.remove(merge_idx);
-						}
+							mergeCount.put(mjobs.get(i).ip,0);
+							mergeDuration.put(mjobs.get(i).ip,(long)0L);
 					}
-					else
-					{
-						if(mergeCount.containsKey(computeNodes.get(merge_idx).ip)==false) 
-						{
-							mergeCount.put(computeNodes.get(merge_idx).ip,0);
-							mergeDuration.put(computeNodes.get(merge_idx).ip,(long)0L);
-						}
-						mergeCount.put(computeNodes.get(merge_idx).ip,mergeCount.get(computeNodes.get(merge_idx).ip)+1);
-						mergeDuration.put(computeNodes.get(merge_idx).ip,mergeCount.get(computeNodes.get(merge_idx).ip) + mergeJobStatus.time);
-					}	
-					mergeJobs			= mergeJobs+1;
-				}while(mergeJobStatus.time<=0);
-				q2.add(mergeJobStatus.filename);
+					mergeCount.put(mjobs.get(i).ip,mergeCount.get(mjobs.get(i).ip)+1);
+					mergeDuration.put(mjobs.get(i).ip,mergeDuration.get(mjobs.get(i).ip) + mjobs.get(i).result.time);
+					intermediateFiles.add(mjobs.get(i).result.filename);
 			}
-			while(!q2.isEmpty())
-			{
-				q1.add(q2.peek());
-				q2.remove();
-			}
-		}	
-		
+			if(intermediateFiles.size()==1) break;
+		}
+
 		result.status	= true;
-		result.filename	= q1.peek();
+		result.filename	= intermediateFiles.get(0);
 		System.out.println("Sorted output is stored in " + result.filename);
 		String absolutePath	= System.getProperty("user.dir");
 		new File(absolutePath+ "/" + intermediateDirectory + result.filename).renameTo(new File(absolutePath +"/" + outputDirectory + result.filename));
 		return result;
 	}
-	
+
 	private JobTime merge(List<String> intermediateFiles,String ip,int port) throws TException
 	{
-		JobTime result	= new JobTime("",(long)0);
-		try
-        {
-          	TTransport transport                = new TSocket(ip,port);
-            TProtocol protocol                  = new TBinaryProtocol(new TFramedTransport(transport));
-            ComputeService.Client client        = new ComputeService.Client(protocol);
-            transport.open();
-            result			                    = client.doMerge(intermediateFiles);
-            transport.close();
-       }
-       catch(TException x)
-       {
-       }
-	   return result;
+			JobTime result	= new JobTime("",(long)0);
+			try
+			{
+					TTransport transport                = new TSocket(ip,port);
+					TProtocol protocol                  = new TBinaryProtocol(new TFramedTransport(transport));
+					ComputeService.Client client        = new ComputeService.Client(protocol);
+					transport.open();
+					result			                    = client.doMerge(intermediateFiles);
+					transport.close();
+			}
+			catch(TException x)
+			{
+			}
+			return result;
 	}	
 
 	void removeNode(int idx)
 	{
-		System.out.println("Node with IP " + computeNodes.get(idx).ip + " failed !!!!!!!! Re-assigning its Task ...");
-		computeNodes.remove(idx);
+			System.out.println("Node with IP " + computeNodes.get(idx).ip + " failed !!!!!!!! Re-assigning its Task ...");
+			computeNodes.remove(idx);
 	}
 
 	boolean isNodeAlive(String ip,int port)
 	{
-		boolean status	= false;
-		try
-		{
-			TTransport transport				= new TSocket(ip,port);
-			TProtocol protocol					= new TBinaryProtocol(new TFramedTransport(transport));
-			ComputeService.Client client		= new ComputeService.Client(protocol);
-			transport.open();
-			status								= client.ping();
-			transport.close();
-		}
-
-		catch(TException x)
-		{
-			System.out.println(" =================== Unable to establish connection with Node " + ip + " - Status Check failed ... Exiting ... =================");
-		}	
-		return status;
-	}
-
-	sortJob reAssign(sortJob job)
-	{
-		int seed 			= (int)((long)System.currentTimeMillis() % 1000);
-        Random rnd 			= new Random(seed);
-		int retry_task_idx  = rnd.nextInt(computeNodes.size());
-		System.out.println("Task with Id " + job.id + " will be re-assigned to node with IP " + computeNodes.get(retry_task_idx).ip);	
-		sortJob retry		= new sortJob(job.id,job.filename,job.offSet,job.numToSort,computeNodes.get(retry_task_idx).ip,computeNodes.get(retry_task_idx).port);
-		return retry;
-	}
-
-	static class sortJob extends Thread
-	{
-		public String filename;
-		public int offSet;
-		public int numToSort;
-		public long duration;		
-		public String ip;
-		public int port;
-		public JobTime result;
-		public int threadRunStatus;
-		public int id;
-
-		public sortJob(int id,String filename,int offSet,int numToSort,String ip,int port)
-		{
-			this.id					= id;
-			this.filename			= filename;
-			this.offSet				= offSet;
-			this.numToSort			= numToSort;
-			this.duration			= 0;
-			this.ip					= ip;
-			this.port				= port;	
-			this.result				= null;
-			this.threadRunStatus	= 0;
-		}
-
-		public void run()
-		{
+			boolean status	= false;
 			try
 			{
-				TTransport transport				= new TSocket(ip,port);
-				TProtocol protocol					= new TBinaryProtocol(new TFramedTransport(transport));
-				ComputeService.Client client		= new ComputeService.Client(protocol);
-				transport.open();
-				this.result							= client.doSort(filename,offSet,numToSort);
-				transport.close();
-				if(this.result.time==-1)
-					this.threadRunStatus = 2;
-				else 
-					this.threadRunStatus = 1;
+					TTransport transport				= new TSocket(ip,port);
+					TProtocol protocol					= new TBinaryProtocol(new TFramedTransport(transport));
+					ComputeService.Client client		= new ComputeService.Client(protocol);
+					transport.open();
+					status								= client.ping();
+					transport.close();
 			}
 
 			catch(TException x)
 			{
-				this.threadRunStatus				= 2;
+					System.out.println(" =================== Unable to establish connection with Node " + ip + " - Status Check failed ... Exiting ... =================");
 			}	
-		}
+			return status;
+	}
+
+	sortJob reAssignSortJob(sortJob job)
+	{
+			int seed 			= (int)((long)System.currentTimeMillis() % 1000);
+			Random rnd 			= new Random(seed);
+			int retry_task_idx  = rnd.nextInt(computeNodes.size());
+			System.out.println("Task with Id " + job.id + " will be re-assigned to node with IP " + computeNodes.get(retry_task_idx).ip);	
+			sortJob retry		= new sortJob(job.id,job.filename,job.offSet,job.numToSort,computeNodes.get(retry_task_idx).ip,computeNodes.get(retry_task_idx).port);
+			return retry;
+	}
+
+	mergeJob reAssignMergeJob(mergeJob job)
+	{
+			int seed 			= (int)((long)System.currentTimeMillis() % 1000);
+			Random rnd 			= new Random(seed);
+			int retry_task_idx  = rnd.nextInt(computeNodes.size());
+			System.out.println("Task with Id " + job.id + " will be re-assigned to node with IP " + computeNodes.get(retry_task_idx).ip);	
+			mergeJob retry		= new mergeJob(job.id,job.files,computeNodes.get(retry_task_idx).ip,computeNodes.get(retry_task_idx).port);
+			return retry;
 	}
 }
