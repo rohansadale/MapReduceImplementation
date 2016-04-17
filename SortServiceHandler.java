@@ -166,14 +166,13 @@ public class SortServiceHandler implements SortService.Iface
 					if(1==jobs.get(i).get(j).threadRunStatus)
 					{
 						killedJobs				= stopJob(jobs.get(i),j);
-						killedJobs.add(jobs.get(i).get(j).result);
 						finishedJobs 			= finishedJobs+1;
 						if(0==type)
 							redundantSortJobs 	= redundantSortJobs+killedJobs.size();
 						else
 							redundantMergeJobs 	= redundantMergeJobs+killedJobs.size();
-
 						jobs.get(i).get(j).result = cleanJob(jobs.get(i).get(j),killedJobs);
+						killedJobs.add(jobs.get(i).get(j).result);
 						success.add(jobs.get(i).get(j));
 						hasProcessed[i]			= 1;
 					}
@@ -287,11 +286,12 @@ public class SortServiceHandler implements SortService.Iface
 		{
 			mjobs.clear();
 			int finishedJobs					= 0;
-			int task_node_idx					= rnd.nextInt(computeNodes.size());
+			int task_node_idx					= 0;
 			System.out.println("Started Fresh Round of Merging ....");
 			for(int i=0;i<intermediateFiles.size();i=i+mergeTaskSize)
 			{
 				List<String> tFiles				= new ArrayList<String>();
+				task_node_idx					= rnd.nextInt(computeNodes.size())
 				for(int j=i;j<i+mergeTaskSize && j<intermediateFiles.size();j++)
 					tFiles.add(intermediateFiles.get(j));
 				ArrayList<sortJob> replSortJob	= new ArrayList<sortJob>();

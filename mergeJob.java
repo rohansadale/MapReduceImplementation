@@ -39,7 +39,7 @@ public class mergeJob extends Thread
 						TProtocol protocol					= new TBinaryProtocol(new TFramedTransport(transport));
 						ComputeService.Client client		= new ComputeService.Client(protocol);
 						transport.open();
-						this.result							= client.doMerge(files);
+						this.result							= client.doMerge(jobId,taskId,replId,files);
 						transport.close();
 						if(this.result.time==-1)
 								this.threadRunStatus = 2;
