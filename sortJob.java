@@ -45,7 +45,7 @@ public class sortJob extends Thread
 						TProtocol protocol					= new TBinaryProtocol(new TFramedTransport(transport));
 						ComputeService.Client client		= new ComputeService.Client(protocol);
 						transport.open();
-						this.result							= client.doSort(filename,offSet,numToSort);
+						this.result							= client.doSort(jobId,taskId,replId,filename,offSet,numToSort);
 						transport.close();
 						if(this.result.time==-1)
 								this.threadRunStatus = 2;
