@@ -294,14 +294,39 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 	@Override
 	public JobTime stopJob(String jobId, int taskId, int replId)
 	{
-		JobTime result	= new JobTime("",(long)0);
+		String key = jobId + String.valueOf(taskId) + String.valueOf(replId);
+		String fileName = "";
+                if(mergeState.containsKey(key)){
+                        mergeState.put(key, false);
+			fileName = mergeFileMap.get(key);
+		}
+                else if(sortState.containsKey(key)){
+                        sortState.put(key, false);
+			fileName = sortFileMap.get(key);
+		}
+
+		JobTime result	= new JobTime(fileName,(long)0);
 		return result;
 	}
 
 	@Override
 	public JobTime completeJob(Map<JobTime,Boolean> action)
 	{
-		JobTime result	= new JobTime("",(long)0);
+		String absolutePath = System.getProperty("user.dir");
+		String outFileName = "";	
+		for(Map.Entry<JobTime, Boolean> entry : action.entrySet()){
+			JobTime job = entry.getKey();
+			String fileName = job.filename; 
+			Boolean shouldDelete = entry.getValue();
+			if(shouldDelete){
+				File file = new File(absolutePath + INTERMEDIATE_DIRECTORY_KEY + fileName);
+				file.delete();	
+			}
+			else{
+				outFileName = fileName;
+			}
+		}
+		JobTime result	= new JobTime(outFileName,(long)0);
 		return result;
 	}
 	
