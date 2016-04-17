@@ -102,58 +102,12 @@ public class SortServiceHandler implements SortService.Iface
 		mergeCount			= new HashMap<String,Integer>();
 	}
 
-	private JobTime cleanJob(E  success,ArrayList<JobTime> killedJobs)
-	{
-		HashMap<JobTime,Boolean> action 	= new HashMap<JobTime,Boolean>();
-		action.put(success.filename,true);
-		for(int i=0;i<killedJobs.size();i++)
-			action.put(killedJobs.get(i).filename,false);
-		JobTime result	= new JobTime("",(long)0);
-		try
-		{
-			TTransport transport                = new TSocket(success.ip,success.port);
-			TProtocol protocol                  = new TBinaryProtocol(new TFramedTransport(transport));
-			ComputeService.Client client        = new ComputeService.Client(protocol);
-			transport.open();
-			result			                    = client.cleanJob(action);
-			transport.close();
-		}
-		catch(TException x)
-		{
-		}
-		return result;
-	}
-
-	private ArrayList<JobTime> stopJob(ArrayList< E > jobs,int idx) throws TException
-	{
-		ArrayList<JobTime> killedJobs	= new ArrayList<JobTime>();
-		for(int i=0;i<jobs.size();i++)
-		{
-			if(i==idx) continue;
-			JobTime result	= new JobTime("",(long)0);
-			try
-			{
-					TTransport transport                = new TSocket(jobs.get(i).ip,jobs.get(i).port);
-					TProtocol protocol                  = new TBinaryProtocol(new TFramedTransport(transport));
-					ComputeService.Client client        = new ComputeService.Client(protocol);
-					transport.open();
-					result			                    = client.stopJob(jobs.get(i).jobId,jobs.get(i).taskId,jobs.get(i).replId);
-					transport.close();
-			}
-			catch(TException x)
-			{
-			}
-			killedJobs.add(result);
-		}
-		return killedJobs;
-	}
-
-	private ArrayList<E> processJobs(ArrayList< ArrayList< E > > jobs,int type) throws TException
+	private ArrayList<sortJob> processSortJobs(ArrayList< ArrayList< sortJob > > jobs) throws TException
 	{
 		int finishedJobs 					= 0;
 		int failedReplicatedJobs			= 0;
 		ArrayList<JobTime> killedJobs		= null;
-		ArrayList<E> success 				= new ArrayList<E>();
+		ArrayList<sortJob> success 			= new ArrayList<sortJob>();
 		int [] hasProcessed 				= new int[jobs.size()];
 		while(true)
 		{
@@ -165,23 +119,55 @@ public class SortServiceHandler implements SortService.Iface
 				{
 					if(1==jobs.get(i).get(j).threadRunStatus)
 					{
-						killedJobs				= stopJob(jobs.get(i),j);
-						finishedJobs 			= finishedJobs+1;
-						if(0==type)
-							redundantSortJobs 	= redundantSortJobs+killedJobs.size();
-						else
-							redundantMergeJobs 	= redundantMergeJobs+killedJobs.size();
-						jobs.get(i).get(j).result = cleanJob(jobs.get(i).get(j),killedJobs);
+						killedJobs					= Util.getInstance().stopSortJob(jobs.get(i),j);
+						finishedJobs 				= finishedJobs+1;
+						redundantSortJobs 			= redundantSortJobs+killedJobs.size();
+						jobs.get(i).get(j).result 	= Util.getInstance().cleanSortJob(jobs.get(i).get(j),killedJobs);
 						killedJobs.add(jobs.get(i).get(j).result);
 						success.add(jobs.get(i).get(j));
-						hasProcessed[i]			= 1;
+						hasProcessed[i]				= 1;
 					}
 					if(2==jobs.get(i).get(j).threadRunStatus)
 					{
-						if(0==type)
-							sortFailedJobs 		= sortFailedJobs+1;
-						else
-							mergeFailedJobs		= mergeFailedJobs+1;
+						sortFailedJobs 		= sortFailedJobs+1;
+						failedReplicatedJobs	= failedReplicatedJobs+1;
+					}
+				}
+				if(failedReplicatedJobs==jobs.get(i).size()) return null;
+			}
+			if(finishedJobs==jobs.size()) break;
+		}
+		return success;
+	}
+
+	private ArrayList<mergeJob> processMergeJobs(ArrayList< ArrayList< mergeJob > > jobs) throws TException
+	{
+		int finishedJobs 					= 0;
+		int failedReplicatedJobs			= 0;
+		ArrayList<JobTime> killedJobs		= null;
+		ArrayList<mergeJob> success 		= new ArrayList<mergeJob>();
+		int [] hasProcessed 				= new int[jobs.size()];
+		while(true)
+		{
+			for(int i=0;i<jobs.size();i++)
+			{
+				if(1==hasProcessed[i]) continue;
+				failedReplicatedJobs 			= 0;
+				for(int j=0;j<jobs.get(i).size();j++)
+				{
+					if(1==jobs.get(i).get(j).threadRunStatus)
+					{
+						killedJobs					= Util.getInstance().stopMergeJob(jobs.get(i),j);
+						finishedJobs 				= finishedJobs+1;
+						redundantMergeJobs 			= redundantMergeJobs+killedJobs.size();
+						jobs.get(i).get(j).result 	= Util.getInstance().cleanMergeJob(jobs.get(i).get(j),killedJobs);
+						killedJobs.add(jobs.get(i).get(j).result);
+						success.add(jobs.get(i).get(j));
+						hasProcessed[i]				= 1;
+					}
+					if(2==jobs.get(i).get(j).threadRunStatus)
+					{
+						mergeFailedJobs 		= mergeFailedJobs+1;
 						failedReplicatedJobs	= failedReplicatedJobs+1;
 					}
 				}
@@ -228,20 +214,22 @@ public class SortServiceHandler implements SortService.Iface
 			return result;
 		}
 
-		ArrayList< sortJob > sortResult		= doSort(sortFile);
+		ArrayList< sortJob > sortResult		= doSort(inputDirectory+filename);
 		if(null==sortResult) 
 			new JobStatus(false,"Sort Job Failed as more than half of the system went down","");
 		System.out.println("Sorting Task finished!!");
-		result 	= doMerge(sortResult);
-		if(result.status!=false) printSummary(jobs,mergeDuration,mergeCount);
+		result 								= doMerge(sortResult);
+		if(result.status!=false) 
+			printSummary(sortResult,mergeDuration,mergeCount);
 		return result;
 	}
 
-	private ArrayList< sortJob > doSort(String filename) throws TException
+	private ArrayList< sortJob > doSort(String sortFile) throws TException
 	{
+		File filename				= new File(inputDirectory+sortFile);
 		double fileSize				= filename.length();
 		int numTasks				= (int)Math.ceil(fileSize/chunkSize);
-		System.out.println("To sort " + filename + " " + numTasks + " Tasks are produced");
+		System.out.println("To sort " + sortFile + " " + numTasks + " Tasks are produced");
 
 		int offset					= 0;
 		for(int i=0;i<numTasks;i++)
@@ -250,7 +238,7 @@ public class SortServiceHandler implements SortService.Iface
 			ArrayList<sortJob> replSortJob	= new ArrayList<sortJob>();
 			for(int j=0;j<replication;j++)
 			{
-				sortJob job					= new sortJob(jobId,i,j,filename,offset,
+				sortJob job					= new sortJob(jobId,i,j,sortFile,offset,
 													chunkSize,computeNodes.get(j).ip,computeNodes.get(j).port);
 				replSortJob.add(job);
 			}
@@ -266,7 +254,7 @@ public class SortServiceHandler implements SortService.Iface
 				jobs.get(i).get(j).start();
 			}
 		}
-		return processJobs(jobs,0);
+		return processSortJobs(jobs);
 	}
 
 	private JobStatus doMerge(ArrayList< sortJob > sortResult) throws TException
@@ -291,10 +279,10 @@ public class SortServiceHandler implements SortService.Iface
 			for(int i=0;i<intermediateFiles.size();i=i+mergeTaskSize)
 			{
 				List<String> tFiles				= new ArrayList<String>();
-				task_node_idx					= rnd.nextInt(computeNodes.size())
+				task_node_idx					= rnd.nextInt(computeNodes.size());
 				for(int j=i;j<i+mergeTaskSize && j<intermediateFiles.size();j++)
 					tFiles.add(intermediateFiles.get(j));
-				ArrayList<sortJob> replSortJob	= new ArrayList<sortJob>();
+				ArrayList<mergeJob> replSortJob	= new ArrayList<mergeJob>();
 				for(int j=0;j<replication;j++)
 				{
 					mergeJob cmergeJob			= new mergeJob(jobId,i+jobs.size(),j,tFiles,
@@ -309,7 +297,7 @@ public class SortServiceHandler implements SortService.Iface
 				for(int j=0;j<mjobs.get(i).size();j++)
 					mjobs.get(i).get(j).start();
 			}
-			ArrayList<mergeJob> success 		= processJobs(mjobs,1);
+			ArrayList<mergeJob> success 		= processMergeJobs(mjobs);
 			intermediateFiles.clear();
 			mergeJobs							= mergeJobs + success.size();
 			for(int i=0;i<success.size();i++)
@@ -332,24 +320,6 @@ public class SortServiceHandler implements SortService.Iface
 		String absolutePath	= System.getProperty("user.dir");
 		new File(absolutePath+ "/" + intermediateDirectory + result.filename).renameTo(new File(absolutePath +"/" + outputDirectory + result.filename));
 		return result;
-	}
-
-	private JobTime merge(List<String> intermediateFiles,String ip,int port) throws TException
-	{
-			JobTime result	= new JobTime("",(long)0);
-			try
-			{
-					TTransport transport                = new TSocket(ip,port);
-					TProtocol protocol                  = new TBinaryProtocol(new TFramedTransport(transport));
-					ComputeService.Client client        = new ComputeService.Client(protocol);
-					transport.open();
-					result			                    = client.doMerge(intermediateFiles);
-					transport.close();
-			}
-			catch(TException x)
-			{
-			}
-			return result;
 	}
 
 	void removeNode(int idx)
@@ -376,27 +346,6 @@ public class SortServiceHandler implements SortService.Iface
 					System.out.println(" =================== Unable to establish connection with Node " + ip + " - Status Check failed ... Exiting ... =================");
 			}
 			return status;
-	}
-
-	sortJob reAssignSortJob(sortJob job)
-	{
-			int seed 			= (int)((long)System.currentTimeMillis() % 1000);
-			Random rnd 			= new Random(seed);
-			int retry_task_idx  = rnd.nextInt(computeNodes.size());
-			System.out.println("Task with Id " + job.taskId + " will be re-assigned to node with IP " + computeNodes.get(retry_task_idx).ip);
-			sortJob retry		= new sortJob(job.jobId,job.taskId,job.replId,job.filename,job.offSet,job.numToSort,
-									computeNodes.get(retry_task_idx).ip,computeNodes.get(retry_task_idx).port);
-			return retry;
-	}
-
-	mergeJob reAssignMergeJob(mergeJob job)
-	{
-			int seed 			= (int)((long)System.currentTimeMillis() % 1000);
-			Random rnd 			= new Random(seed);
-			int retry_task_idx  = rnd.nextInt(computeNodes.size());
-			System.out.println("Task with Id " + job.taskId + " will be re-assigned to node with IP " + computeNodes.get(retry_task_idx).ip);
-			mergeJob retry		= new mergeJob(job.jobId,job.taskId,job.replId,job.files,computeNodes.get(retry_task_idx).ip,computeNodes.get(retry_task_idx).port);
-			return retry;
 	}
 
 	private void printSummary(ArrayList< sortJob > jobs,HashMap<String,Long> mergeDuration,HashMap<String,Integer> mergeCount)

@@ -6,6 +6,7 @@ import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.protocol.TBinaryProtocol;
+import java.security.NoSuchAlgorithmException;
 
 public class Util
 {
@@ -109,14 +110,113 @@ public class Util
 
     public static String getJobId(String filename)
     {
-    	MessageDigest md = MessageDigest.getInstance("MD5");
-        md.update(filename.getBytes());
-        byte byteData[] = md.digest();
+    	String content = "";
+    	try
+    	{
+	    	MessageDigest md = MessageDigest.getInstance("MD5");
+	        md.update(filename.getBytes());
+	        byte byteData[] = md.digest();
 
-        StringBuffer sb = new StringBuffer();
-        for (int i = 0; i < byteData.length; i++) 
-        	sb.append(Integer.toString((byteData[i] & 0xff) + 0x100, 16).substring(1));
-
-        return sb.toString().substring(0,10);
+	        StringBuffer sb = new StringBuffer();
+	        for (int i = 0; i < byteData.length; i++) 
+	        	sb.append(Integer.toString((byteData[i] & 0xff) + 0x100, 16).substring(1));
+	        content 	=  sb.toString().substring(0,10);
+    	}
+    	catch(NoSuchAlgorithmException e) {}
+    	return content;
     }
+
+    public static JobTime cleanSortJob(sortJob success,ArrayList<JobTime> killedJobs) throws TException
+	{
+		HashMap<JobTime,Boolean> action 	= new HashMap<JobTime,Boolean>();
+		action.put(success.result,new Boolean(false));
+		for(int i=0;i<killedJobs.size();i++)
+			action.put(killedJobs.get(i),new Boolean(true));
+
+		JobTime result	= new JobTime("",(long)0);
+		try
+		{
+			TTransport transport                = new TSocket(success.ip,success.port);
+			TProtocol protocol                  = new TBinaryProtocol(new TFramedTransport(transport));
+			ComputeService.Client client        = new ComputeService.Client(protocol);
+			transport.open();
+			result			                    = client.completeJob(action);
+			transport.close();
+		}
+		catch(TException x)
+		{
+		}
+		return result;
+	}
+
+	public static ArrayList<JobTime> stopSortJob(ArrayList< sortJob > jobs,int idx) throws TException
+	{
+		ArrayList<JobTime> killedJobs	= new ArrayList<JobTime>();
+		for(int i=0;i<jobs.size();i++)
+		{
+			if(i==idx) continue;
+			JobTime result	= new JobTime("",(long)0);
+			try
+			{
+				TTransport transport                = new TSocket(jobs.get(i).ip,jobs.get(i).port);
+				TProtocol protocol                  = new TBinaryProtocol(new TFramedTransport(transport));
+				ComputeService.Client client        = new ComputeService.Client(protocol);
+				transport.open();
+				result			                    = client.stopJob(jobs.get(i).jobId,jobs.get(i).taskId,jobs.get(i).replId);
+					transport.close();
+			}
+			catch(TException x)
+			{
+			}
+			killedJobs.add(result);
+		}
+		return killedJobs;
+	}
+
+	public static JobTime cleanMergeJob(mergeJob success,ArrayList<JobTime> killedJobs) throws TException
+	{
+		HashMap<JobTime,Boolean> action 	= new HashMap<JobTime,Boolean>();
+		action.put(success.result,new Boolean(false));
+		for(int i=0;i<killedJobs.size();i++)
+			action.put(killedJobs.get(i),new Boolean(true));
+
+		JobTime result	= new JobTime("",(long)0);
+		try
+		{
+			TTransport transport                = new TSocket(success.ip,success.port);
+			TProtocol protocol                  = new TBinaryProtocol(new TFramedTransport(transport));
+			ComputeService.Client client        = new ComputeService.Client(protocol);
+			transport.open();
+			result			                    = client.completeJob(action);
+			transport.close();
+		}
+		catch(TException x)
+		{
+		}
+		return result;
+	}
+
+	public static ArrayList<JobTime> stopMergeJob(ArrayList< mergeJob > jobs,int idx) throws TException
+	{
+		ArrayList<JobTime> killedJobs	= new ArrayList<JobTime>();
+		for(int i=0;i<jobs.size();i++)
+		{
+			if(i==idx) continue;
+			JobTime result	= new JobTime("",(long)0);
+			try
+			{
+				TTransport transport                = new TSocket(jobs.get(i).ip,jobs.get(i).port);
+				TProtocol protocol                  = new TBinaryProtocol(new TFramedTransport(transport));
+				ComputeService.Client client        = new ComputeService.Client(protocol);
+				transport.open();
+				result			                    = client.stopJob(jobs.get(i).jobId,jobs.get(i).taskId,jobs.get(i).replId);
+				transport.close();
+			}
+			catch(TException x)
+			{
+			}
+			killedJobs.add(result);
+		}
+		return killedJobs;
+	}
 }
