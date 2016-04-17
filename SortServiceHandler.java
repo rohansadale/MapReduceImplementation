@@ -102,9 +102,9 @@ public class SortServiceHandler implements SortService.Iface
 		mergeCount			= new HashMap<String,Integer>();
 	}
 
-	private JobTime cleanJob(E success,ArrayList<JobTime> killedJobs)
+	private JobTime cleanJob(E  success,ArrayList<JobTime> killedJobs)
 	{
-		HashMap<JobTime,boolean> action 	= new HashMap<JobTime,boolean>();
+		HashMap<JobTime,Boolean> action 	= new HashMap<JobTime,Boolean>();
 		action.put(success.filename,true);
 		for(int i=0;i<killedJobs.size();i++)
 			action.put(killedJobs.get(i).filename,false);
@@ -115,8 +115,7 @@ public class SortServiceHandler implements SortService.Iface
 			TProtocol protocol                  = new TBinaryProtocol(new TFramedTransport(transport));
 			ComputeService.Client client        = new ComputeService.Client(protocol);
 			transport.open();
-			result			                    = client.cleanJob(killedJobs.get(i).jobId,killedJobs.get(i).taskId,
-																killedJobs.get(i).replId,action);
+			result			                    = client.cleanJob(action);
 			transport.close();
 		}
 		catch(TException x)
@@ -149,13 +148,13 @@ public class SortServiceHandler implements SortService.Iface
 		return killedJobs;
 	}
 
-	private ArrayList<E> processJobs(ArrayList< ArrayList< <E> > > jobs,int type) throws TException
+	private ArrayList<E> processJobs(ArrayList< ArrayList< E > > jobs,int type) throws TException
 	{
 		int finishedJobs 					= 0;
 		int failedReplicatedJobs			= 0;
 		ArrayList<JobTime> killedJobs		= null;
 		ArrayList<E> success 				= new ArrayList<E>();
-		int hasProcessed 					= new hasProcessed[jobs.size()];
+		int [] hasProcessed 				= new int[jobs.size()];
 		while(true)
 		{
 			for(int i=0;i<jobs.size();i++)
@@ -384,8 +383,9 @@ public class SortServiceHandler implements SortService.Iface
 			int seed 			= (int)((long)System.currentTimeMillis() % 1000);
 			Random rnd 			= new Random(seed);
 			int retry_task_idx  = rnd.nextInt(computeNodes.size());
-			System.out.println("Task with Id " + job.id + " will be re-assigned to node with IP " + computeNodes.get(retry_task_idx).ip);
-			sortJob retry		= new sortJob(job.id,job.filename,job.offSet,job.numToSort,computeNodes.get(retry_task_idx).ip,computeNodes.get(retry_task_idx).port);
+			System.out.println("Task with Id " + job.taskId + " will be re-assigned to node with IP " + computeNodes.get(retry_task_idx).ip);
+			sortJob retry		= new sortJob(job.jobId,job.taskId,job.replId,job.filename,job.offSet,job.numToSort,
+									computeNodes.get(retry_task_idx).ip,computeNodes.get(retry_task_idx).port);
 			return retry;
 	}
 
@@ -394,8 +394,8 @@ public class SortServiceHandler implements SortService.Iface
 			int seed 			= (int)((long)System.currentTimeMillis() % 1000);
 			Random rnd 			= new Random(seed);
 			int retry_task_idx  = rnd.nextInt(computeNodes.size());
-			System.out.println("Task with Id " + job.id + " will be re-assigned to node with IP " + computeNodes.get(retry_task_idx).ip);
-			mergeJob retry		= new mergeJob(job.id,job.files,computeNodes.get(retry_task_idx).ip,computeNodes.get(retry_task_idx).port);
+			System.out.println("Task with Id " + job.taskId + " will be re-assigned to node with IP " + computeNodes.get(retry_task_idx).ip);
+			mergeJob retry		= new mergeJob(job.jobId,job.taskId,job.replId,job.files,computeNodes.get(retry_task_idx).ip,computeNodes.get(retry_task_idx).port);
 			return retry;
 	}
 

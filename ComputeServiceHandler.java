@@ -291,6 +291,21 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 		return true;
 	}
 
+	@Override
+	public JobTime stopJob(String jobId, int taskId, int replId)
+	{
+		JobTime result	= new JobTime("",(long)0);
+		return result;
+	}
+
+	@Override
+	public JobTime completeJob(Map<JobTime,Boolean> action)
+	{
+		JobTime result	= new JobTime("",(long)0);
+		return result;
+	}
+	
+	@Override
 	public void cleanJob(String key){
 		if(mergeState.containsKey(key))
 			mergeState.remove(key);
