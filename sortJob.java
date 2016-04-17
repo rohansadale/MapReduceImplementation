@@ -18,11 +18,15 @@ public class sortJob extends Thread
 		public int port;
 		public JobTime result;
 		public int threadRunStatus;
-		public int id;
+		public String jobId;
+		public int taskId;
+		public int replId;
 
-		public sortJob(int id,String filename,int offSet,int numToSort,String ip,int port)
+		public sortJob(String jobId,int taskId,int replId,String filename,int offSet,int numToSort,String ip,int port)
 		{
-				this.id					= id;
+				this.jobId				= jobId;
+				this.taskId 			= taskId;
+				this.replId				= replId;
 				this.filename			= filename;
 				this.offSet				= offSet;
 				this.numToSort			= numToSort;

@@ -15,16 +15,20 @@ public class mergeJob extends Thread
 		public int port;
 		public JobTime result;
 		public int threadRunStatus;
-		public int id;
+		public String jobId;
+		public int taskId;
+		public int replId;
 
-		public mergeJob(int id,List<String> files,String ip,int port)
+		public mergeJob(String jobId,int taskId,int replId,List<String> files,String ip,int port)
 		{
-				this.id					= id;
-				this.ip					= ip;
-				this.port				= port;
-				this.result				= null;
-				this.threadRunStatus	= 0;
-				this.files				= files;
+			this.jobId				= jobId;
+			this.taskId 			= taskId;
+			this.replId				= replId;
+			this.ip					= ip;
+			this.port				= port;
+			this.result				= null;
+			this.threadRunStatus	= 0;
+			this.files				= files;
 		}
 
 		public void run()

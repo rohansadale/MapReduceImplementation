@@ -1,5 +1,6 @@
 import java.util.*;
 import java.io.*;
+import java.security.MessageDigest;
 import org.apache.thrift.transport.*;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TProtocol;
@@ -96,14 +97,26 @@ public class Util
 		}
 	}
 
-        public static String hashFile(List<String> files){
-
-                long code = 0;
-                for(int i = 0 ; i < files.size(); i++){
-                        String fileName = files.get(i);
-                        code += Integer.parseInt(fileName.substring(fileName.lastIndexOf('_') + 1));
-                }
-                return String.valueOf(code);
+    public static String hashFile(List<String> files)
+    {
+        long code = 0;
+        for(int i = 0 ; i < files.size(); i++){
+                String fileName = files.get(i);
+                code += Integer.parseInt(fileName.substring(fileName.lastIndexOf('_') + 1));
         }
+        return String.valueOf(code);
+    }
 
+    public static String getJobId(String filename)
+    {
+    	MessageDigest md = MessageDigest.getInstance("MD5");
+        md.update(filename.getBytes());
+        byte byteData[] = md.digest();
+
+        StringBuffer sb = new StringBuffer();
+        for (int i = 0; i < byteData.length; i++) 
+        	sb.append(Integer.toString((byteData[i] & 0xff) + 0x100, 16).substring(1));
+
+        return sb.toString().substring(0,10);
+    }
 }
