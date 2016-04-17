@@ -41,9 +41,9 @@ public class ComputeService {
 
     public JobTime doMerge(List<String> files) throws org.apache.thrift.TException;
 
-    public String cleanSort(boolean shouldDelete, String filename, int offset) throws org.apache.thrift.TException;
+    public JobTime cleanSort(boolean shouldDelete, String filename, int offset) throws org.apache.thrift.TException;
 
-    public String cleanMerge(boolean shouldDelete, List<String> files) throws org.apache.thrift.TException;
+    public JobTime cleanMerge(boolean shouldDelete, List<String> files) throws org.apache.thrift.TException;
 
     public boolean ping() throws org.apache.thrift.TException;
 
@@ -131,7 +131,7 @@ public class ComputeService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "doMerge failed: unknown result");
     }
 
-    public String cleanSort(boolean shouldDelete, String filename, int offset) throws org.apache.thrift.TException
+    public JobTime cleanSort(boolean shouldDelete, String filename, int offset) throws org.apache.thrift.TException
     {
       send_cleanSort(shouldDelete, filename, offset);
       return recv_cleanSort();
@@ -146,7 +146,7 @@ public class ComputeService {
       sendBase("cleanSort", args);
     }
 
-    public String recv_cleanSort() throws org.apache.thrift.TException
+    public JobTime recv_cleanSort() throws org.apache.thrift.TException
     {
       cleanSort_result result = new cleanSort_result();
       receiveBase(result, "cleanSort");
@@ -156,7 +156,7 @@ public class ComputeService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "cleanSort failed: unknown result");
     }
 
-    public String cleanMerge(boolean shouldDelete, List<String> files) throws org.apache.thrift.TException
+    public JobTime cleanMerge(boolean shouldDelete, List<String> files) throws org.apache.thrift.TException
     {
       send_cleanMerge(shouldDelete, files);
       return recv_cleanMerge();
@@ -170,7 +170,7 @@ public class ComputeService {
       sendBase("cleanMerge", args);
     }
 
-    public String recv_cleanMerge() throws org.apache.thrift.TException
+    public JobTime recv_cleanMerge() throws org.apache.thrift.TException
     {
       cleanMerge_result result = new cleanMerge_result();
       receiveBase(result, "cleanMerge");
@@ -318,7 +318,7 @@ public class ComputeService {
         prot.writeMessageEnd();
       }
 
-      public String getResult() throws org.apache.thrift.TException {
+      public JobTime getResult() throws org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -353,7 +353,7 @@ public class ComputeService {
         prot.writeMessageEnd();
       }
 
-      public String getResult() throws org.apache.thrift.TException {
+      public JobTime getResult() throws org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -637,7 +637,7 @@ public class ComputeService {
       }
     }
 
-    public static class cleanSort<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, cleanSort_args, String> {
+    public static class cleanSort<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, cleanSort_args, JobTime> {
       public cleanSort() {
         super("cleanSort");
       }
@@ -646,10 +646,10 @@ public class ComputeService {
         return new cleanSort_args();
       }
 
-      public AsyncMethodCallback<String> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<JobTime> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<String>() { 
-          public void onComplete(String o) {
+        return new AsyncMethodCallback<JobTime>() { 
+          public void onComplete(JobTime o) {
             cleanSort_result result = new cleanSort_result();
             result.success = o;
             try {
@@ -683,12 +683,12 @@ public class ComputeService {
         return false;
       }
 
-      public void start(I iface, cleanSort_args args, org.apache.thrift.async.AsyncMethodCallback<String> resultHandler) throws TException {
+      public void start(I iface, cleanSort_args args, org.apache.thrift.async.AsyncMethodCallback<JobTime> resultHandler) throws TException {
         iface.cleanSort(args.shouldDelete, args.filename, args.offset,resultHandler);
       }
     }
 
-    public static class cleanMerge<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, cleanMerge_args, String> {
+    public static class cleanMerge<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, cleanMerge_args, JobTime> {
       public cleanMerge() {
         super("cleanMerge");
       }
@@ -697,10 +697,10 @@ public class ComputeService {
         return new cleanMerge_args();
       }
 
-      public AsyncMethodCallback<String> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<JobTime> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<String>() { 
-          public void onComplete(String o) {
+        return new AsyncMethodCallback<JobTime>() { 
+          public void onComplete(JobTime o) {
             cleanMerge_result result = new cleanMerge_result();
             result.success = o;
             try {
@@ -734,7 +734,7 @@ public class ComputeService {
         return false;
       }
 
-      public void start(I iface, cleanMerge_args args, org.apache.thrift.async.AsyncMethodCallback<String> resultHandler) throws TException {
+      public void start(I iface, cleanMerge_args args, org.apache.thrift.async.AsyncMethodCallback<JobTime> resultHandler) throws TException {
         iface.cleanMerge(args.shouldDelete, args.files,resultHandler);
       }
     }
@@ -3064,7 +3064,7 @@ public class ComputeService {
   public static class cleanSort_result implements org.apache.thrift.TBase<cleanSort_result, cleanSort_result._Fields>, java.io.Serializable, Cloneable, Comparable<cleanSort_result>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("cleanSort_result");
 
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRING, (short)0);
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -3072,7 +3072,7 @@ public class ComputeService {
       schemes.put(TupleScheme.class, new cleanSort_resultTupleSchemeFactory());
     }
 
-    public String success; // required
+    public JobTime success; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -3137,7 +3137,7 @@ public class ComputeService {
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, JobTime.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(cleanSort_result.class, metaDataMap);
     }
@@ -3146,7 +3146,7 @@ public class ComputeService {
     }
 
     public cleanSort_result(
-      String success)
+      JobTime success)
     {
       this();
       this.success = success;
@@ -3157,7 +3157,7 @@ public class ComputeService {
      */
     public cleanSort_result(cleanSort_result other) {
       if (other.isSetSuccess()) {
-        this.success = other.success;
+        this.success = new JobTime(other.success);
       }
     }
 
@@ -3170,11 +3170,11 @@ public class ComputeService {
       this.success = null;
     }
 
-    public String getSuccess() {
+    public JobTime getSuccess() {
       return this.success;
     }
 
-    public cleanSort_result setSuccess(String success) {
+    public cleanSort_result setSuccess(JobTime success) {
       this.success = success;
       return this;
     }
@@ -3200,7 +3200,7 @@ public class ComputeService {
         if (value == null) {
           unsetSuccess();
         } else {
-          setSuccess((String)value);
+          setSuccess((JobTime)value);
         }
         break;
 
@@ -3318,6 +3318,9 @@ public class ComputeService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (success != null) {
+        success.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -3355,8 +3358,9 @@ public class ComputeService {
           }
           switch (schemeField.id) {
             case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-                struct.success = iprot.readString();
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.success = new JobTime();
+                struct.success.read(iprot);
                 struct.setSuccessIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -3379,7 +3383,7 @@ public class ComputeService {
         oprot.writeStructBegin(STRUCT_DESC);
         if (struct.success != null) {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-          oprot.writeString(struct.success);
+          struct.success.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -3405,7 +3409,7 @@ public class ComputeService {
         }
         oprot.writeBitSet(optionals, 1);
         if (struct.isSetSuccess()) {
-          oprot.writeString(struct.success);
+          struct.success.write(oprot);
         }
       }
 
@@ -3414,7 +3418,8 @@ public class ComputeService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
-          struct.success = iprot.readString();
+          struct.success = new JobTime();
+          struct.success.read(iprot);
           struct.setSuccessIsSet(true);
         }
       }
@@ -3938,7 +3943,7 @@ public class ComputeService {
   public static class cleanMerge_result implements org.apache.thrift.TBase<cleanMerge_result, cleanMerge_result._Fields>, java.io.Serializable, Cloneable, Comparable<cleanMerge_result>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("cleanMerge_result");
 
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRING, (short)0);
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -3946,7 +3951,7 @@ public class ComputeService {
       schemes.put(TupleScheme.class, new cleanMerge_resultTupleSchemeFactory());
     }
 
-    public String success; // required
+    public JobTime success; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -4011,7 +4016,7 @@ public class ComputeService {
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, JobTime.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(cleanMerge_result.class, metaDataMap);
     }
@@ -4020,7 +4025,7 @@ public class ComputeService {
     }
 
     public cleanMerge_result(
-      String success)
+      JobTime success)
     {
       this();
       this.success = success;
@@ -4031,7 +4036,7 @@ public class ComputeService {
      */
     public cleanMerge_result(cleanMerge_result other) {
       if (other.isSetSuccess()) {
-        this.success = other.success;
+        this.success = new JobTime(other.success);
       }
     }
 
@@ -4044,11 +4049,11 @@ public class ComputeService {
       this.success = null;
     }
 
-    public String getSuccess() {
+    public JobTime getSuccess() {
       return this.success;
     }
 
-    public cleanMerge_result setSuccess(String success) {
+    public cleanMerge_result setSuccess(JobTime success) {
       this.success = success;
       return this;
     }
@@ -4074,7 +4079,7 @@ public class ComputeService {
         if (value == null) {
           unsetSuccess();
         } else {
-          setSuccess((String)value);
+          setSuccess((JobTime)value);
         }
         break;
 
@@ -4192,6 +4197,9 @@ public class ComputeService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (success != null) {
+        success.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -4229,8 +4237,9 @@ public class ComputeService {
           }
           switch (schemeField.id) {
             case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-                struct.success = iprot.readString();
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.success = new JobTime();
+                struct.success.read(iprot);
                 struct.setSuccessIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -4253,7 +4262,7 @@ public class ComputeService {
         oprot.writeStructBegin(STRUCT_DESC);
         if (struct.success != null) {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-          oprot.writeString(struct.success);
+          struct.success.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -4279,7 +4288,7 @@ public class ComputeService {
         }
         oprot.writeBitSet(optionals, 1);
         if (struct.isSetSuccess()) {
-          oprot.writeString(struct.success);
+          struct.success.write(oprot);
         }
       }
 
@@ -4288,7 +4297,8 @@ public class ComputeService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
-          struct.success = iprot.readString();
+          struct.success = new JobTime();
+          struct.success.read(iprot);
           struct.setSuccessIsSet(true);
         }
       }
