@@ -8,6 +8,7 @@ import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import java.security.NoSuchAlgorithmException;
 
+
 public class Util
 {
 	private static int MOD 				= 107;
@@ -218,6 +219,14 @@ public class Util
 			killedJobs.add(result);
 		}
 		return killedJobs;
+	}
+
+	// Delete intermediate files
+	public static void cleanIntermediateFiles(String directoryName){
+		File folder = new File(directoryName);
+		for(File file:folder.listFiles())
+			if(!file.isDirectory())
+				file.delete();
 	}
 	
 }
