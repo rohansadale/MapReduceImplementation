@@ -20,6 +20,7 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 		private String OUTPUT_DIRECTORY_KEY = "";
 		private static String CURRENT_NODE_IP = "";
 		private float failProbability = (float)0.0;	
+		private int Proactive = 0;
 		private Random rnd = new Random();
 		private HashMap<String, Boolean> sortState;
 		private HashMap<String, Boolean> mergeState;
@@ -28,7 +29,7 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 		private HashMap<String, List<String>> mergeDelete;
 		private HashMap<String, Long> jobDuration;
 
-		public ComputeServiceHandler(String INPUT_DIRECTORY_KEY, String INTERMEDIATE_DIRECTORY_KEY, String OUTPUT_DIRECTORY_KEY,float failProbability){
+		public ComputeServiceHandler(String INPUT_DIRECTORY_KEY, String INTERMEDIATE_DIRECTORY_KEY, String OUTPUT_DIRECTORY_KEY,float failProbability,int Proactive){
 				this.INPUT_DIRECTORY_KEY = INPUT_DIRECTORY_KEY;
 				this.INTERMEDIATE_DIRECTORY_KEY = INTERMEDIATE_DIRECTORY_KEY;	
 				this.OUTPUT_DIRECTORY_KEY = OUTPUT_DIRECTORY_KEY;	
@@ -39,7 +40,7 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 				this.mergeFileMap	= new HashMap<String,String>();				
 				this.mergeDelete = new HashMap<String, List<String>>();
 				this.jobDuration = new HashMap<String, Long>();
-
+				this.Proactive = Proactive;
 				try{
 						CURRENT_NODE_IP = InetAddress.getLocalHost().getHostName();
 				}catch(Exception e){
@@ -53,13 +54,15 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 		@Override
 				public JobTime doSort(String jobId, int taskId, int replId, String fileName, int offset, int count)
 				{
-						float curProbability = rnd.nextFloat();
-						if(curProbability  < this.failProbability)
+						if(0==this.Proactive)
 						{
-								System.out.println("Failing this Task as random number generated is less than fail probability ...");
-								return new JobTime("",(long)-1);
+							float curProbability = rnd.nextFloat();
+							if(curProbability  < this.failProbability)
+							{
+									System.out.println("Failing this Task as random number generated is less than fail probability ...");
+									return new JobTime("",(long)-1);
+							}	
 						}
-
 						//System.out.println("\nStarting Sort task for " + fileName);
 						long startTime = System.currentTimeMillis();
 						/*		
@@ -175,14 +178,16 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 		// Merge Task
 		@Override
 				public JobTime doMerge(String jobId, int taskId, int replId, List<String> files){
-
-						float curProbability = rnd.nextFloat();
-						if(curProbability  < this.failProbability)	
+						
+						if(0==this.Proactive)
 						{
-								System.out.println("Failing this Task as random number generated is less than fail probability ...");
-								return new JobTime("",(long)-1);
+							float curProbability = rnd.nextFloat();
+							if(curProbability  < this.failProbability)	
+							{
+									System.out.println("Failing this Task as random number generated is less than fail probability ...");
+									return new JobTime("",(long)-1);
+							}	
 						}
-
 						long startTime = System.currentTimeMillis();	
 						int n = files.size();
 						int [] numbers = new int[n];
@@ -194,16 +199,6 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 						mergeFileMap.put(mergeStatusKey, outFileName);
 
 						System.out.println("\nStarting Merge task for " + outFileName );
-						System.out.println(" ================================================= ");
-						for(int i=0;i<files.size();i++) System.out.print(files.get(i) + " ");
-						System.out.println(" ================================================= ");
-						/*
-						   try
-						   {
-						   Thread.sleep(30000);
-						   }
-						   catch(InterruptedException ex){}
-						 */
 						do{
 								try{		
 										for(int i = 0; i < n; i++)

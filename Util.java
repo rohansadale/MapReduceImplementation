@@ -156,6 +156,7 @@ public class Util
 		for(int i=0;i<jobs.size();i++)
 		{
 			if(i==idx) continue;
+			jobs.get(i).threadRunStatus				= 2;
 			JobTime result	= new JobTime("",(long)0);
 			try
 			{
@@ -203,6 +204,7 @@ public class Util
 		for(int i=0;i<jobs.size();i++)
 		{
 			if(i==idx) continue;
+			jobs.get(i).threadRunStatus				= 2;
 			JobTime result	= new JobTime("",(long)0);
 			try
 			{

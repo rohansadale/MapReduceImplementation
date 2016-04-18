@@ -25,6 +25,7 @@ public class SortServiceHandler implements SortService.Iface
 	private static int mergeJobs						= 0;
 	private static int redundantSortJobs				= 0;
 	private static int redundantMergeJobs				= 0;
+	private static int Proactive						= 0;
 	private static HashMap<String,Long>	mergeDuration	= null;
 	private static HashMap<String,Integer> mergeCount	= null;
 	private static int initSystemSize					= 0;
@@ -32,7 +33,7 @@ public class SortServiceHandler implements SortService.Iface
 	private static ArrayList< ArrayList<mergeJob> > mjobs;
 
 	public SortServiceHandler(Node node,String inputDirectory,String intermediateDirectory,String outputDirectory,
-							int chunkSize,int mergeTaskSize,int replication)
+							int chunkSize,int mergeTaskSize,int replication,int Proactive)
 	{
 		computeNodes				= new ArrayList<Node>();
 		this.chunkSize				= chunkSize;
@@ -49,6 +50,7 @@ public class SortServiceHandler implements SortService.Iface
 		this.sortJobs 				= 0;
 		this.redundantSortJobs		= 0;
 		this.redundantMergeJobs		= 0;
+		this.Proactive				= 0;
 		jobs						= new ArrayList< ArrayList<sortJob> >();
 		mjobs						= new ArrayList< ArrayList<mergeJob> >();
 		mergeDuration				= new HashMap<String,Long>();
@@ -124,21 +126,17 @@ public class SortServiceHandler implements SortService.Iface
 				{
 					if(1==jobs.get(i).get(j).threadRunStatus)
 					{
-						killedJobs			= Util.getInstance().stopSortJob(jobs.get(i),j);
+						killedJobs				= Util.getInstance().stopSortJob(jobs.get(i),j);
 						finishedJobs 			= finishedJobs+1;
 						redundantSortJobs 		= redundantSortJobs+killedJobs.size();
-						completeJobStatus	 	= Util.getInstance().cleanSortJob(jobs.get(i).get(j),killedJobs);
+						//completeJobStatus	 	= Util.getInstance().cleanSortJob(jobs.get(i).get(j),killedJobs);
 						killedJobs.add(jobs.get(i).get(j).result);
 						success.add(jobs.get(i).get(j));
-						System.out.println("Timing " + jobs.get(i).get(j).result.time);
 						hasProcessed[i]				= 1;
 						break;
 					}
 					if(2==jobs.get(i).get(j).threadRunStatus)
-					{
-						sortFailedJobs 			= sortFailedJobs+1;
 						failedReplicatedJobs	= failedReplicatedJobs+1;
-					}
 				}
 				if(failedReplicatedJobs==jobs.get(i).size()) 
 				{
@@ -148,6 +146,14 @@ public class SortServiceHandler implements SortService.Iface
 			}
 			if(finishedJobs==jobs.size()) break;
 			finishedJobs	= 0;
+		}
+		for(int i=0;i<jobs.size();i++)
+		{
+			for(int j=0;j<jobs.get(i).size();j++)
+			{
+				if(2==jobs.get(i).get(j).threadRunStatus) 
+					sortFailedJobs          = sortFailedJobs+1;
+			}
 		}
 		return success;
 	}
@@ -177,17 +183,14 @@ public class SortServiceHandler implements SortService.Iface
 						killedJobs		= Util.getInstance().stopMergeJob(jobs.get(i),j);
 						finishedJobs 		= finishedJobs+1;
 						redundantMergeJobs 	= redundantMergeJobs+killedJobs.size();
-						completeJobStatus	= Util.getInstance().cleanMergeJob(jobs.get(i).get(j),killedJobs,jobs.get(i).get(j).files);
+						//completeJobStatus	= Util.getInstance().cleanMergeJob(jobs.get(i).get(j),killedJobs,jobs.get(i).get(j).files);
 						killedJobs.add(jobs.get(i).get(j).result);
 						success.add(jobs.get(i).get(j));
 						hasProcessed[i]		= 1;
 						break;
 					}
 					if(2==jobs.get(i).get(j).threadRunStatus)
-					{
 						mergeFailedJobs 		= mergeFailedJobs+1;
-						failedReplicatedJobs	= failedReplicatedJobs+1;
-					}
 				}
 				if(failedReplicatedJobs==jobs.get(i).size()) 
 				{
@@ -197,6 +200,14 @@ public class SortServiceHandler implements SortService.Iface
 			}
 			if(finishedJobs==jobs.size()) break;
 			finishedJobs	= 0;
+		}
+		for(int i=0;i<jobs.size();i++)
+		{
+			for(int j=0;j<jobs.get(i).size();j++)
+			{
+				if(2==jobs.get(i).get(j).threadRunStatus) 
+					mergeFailedJobs 		= mergeFailedJobs+1;
+			}
 		}
 		return success;
 	}
@@ -240,11 +251,15 @@ public class SortServiceHandler implements SortService.Iface
 
 		ArrayList< sortJob > sortResult		= doSort(filename);
 		if(sortResult.isEmpty()==true) 
-			new JobStatus(false,"Sort Job Failed as more than half of the system went down","");
+		{
+			Util.getInstance().cleanIntermediateFiles(intermediateDirectory);
+			return new JobStatus(false,"Sort Job Failed as more than half of the system went down","");
+		}
 		System.out.println("Sorting Task finished!!");
 		result 								= doMerge(sortResult);
 		if(result.status!=false) 
 			printSummary(sortResult,mergeDuration,mergeCount);
+		Util.getInstance().cleanIntermediateFiles(intermediateDirectory);
 		return result;
 	}
 
