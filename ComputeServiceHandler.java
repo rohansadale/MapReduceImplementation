@@ -327,13 +327,14 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 								}catch(Exception e){
 									System.out.println("Thread Sleeping failed");
 								}
-
+								/*
 								List<String>files = mergeDelete.get(key);
 								for(int i = 0; i < files.size(); i++){   
 										System.out.println("Deleting File - " + files.get(i));
 					                                        File f = new File(absolutePath + "/" + INTERMEDIATE_DIRECTORY_KEY + files.get(i));
-                                                                                f.delete();
+                                                                                //f.delete();
 								}
+								*/
 
 						}
 						else if(sortState.containsKey(key)){
@@ -358,20 +359,24 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 								System.out.println("To Delete = " + fileName + " and Bool = " + shouldDelete);
 								if(shouldDelete){
 										File file = new File(absolutePath + "/" + INTERMEDIATE_DIRECTORY_KEY + fileName);
-										if(file.exists())
-											result	= result & file.delete();	
+										//if(file.exists())
+										//	result	= result & file.delete();	
 								}
 								else{
 										outFileName = fileName;
 								}
 						}
+
+						/*
 						for(int i=0;i<filesToBeDeleted.size();i++)
 						{
 							File file = new File(absolutePath + "/" + INTERMEDIATE_DIRECTORY_KEY + filesToBeDeleted.get(i));
 							if(file.exists())
 								result	= result & file.delete();
 						}
+						*/
 						return result;
+
 				}
 
 		@Override
