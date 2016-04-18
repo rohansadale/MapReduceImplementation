@@ -43,7 +43,7 @@ public class ComputeService {
 
     public JobTime stopJob(String jobId, int taskId, int replId) throws org.apache.thrift.TException;
 
-    public JobTime completeJob(Map<JobTime,Boolean> action) throws org.apache.thrift.TException;
+    public boolean completeJob(Map<JobTime,Boolean> action, List<String> filesToBeDeleted) throws org.apache.thrift.TException;
 
     public void cleanJob(String JobId) throws org.apache.thrift.TException;
 
@@ -59,7 +59,7 @@ public class ComputeService {
 
     public void stopJob(String jobId, int taskId, int replId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void completeJob(Map<JobTime,Boolean> action, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void completeJob(Map<JobTime,Boolean> action, List<String> filesToBeDeleted, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void cleanJob(String JobId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -166,20 +166,21 @@ public class ComputeService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "stopJob failed: unknown result");
     }
 
-    public JobTime completeJob(Map<JobTime,Boolean> action) throws org.apache.thrift.TException
+    public boolean completeJob(Map<JobTime,Boolean> action, List<String> filesToBeDeleted) throws org.apache.thrift.TException
     {
-      send_completeJob(action);
+      send_completeJob(action, filesToBeDeleted);
       return recv_completeJob();
     }
 
-    public void send_completeJob(Map<JobTime,Boolean> action) throws org.apache.thrift.TException
+    public void send_completeJob(Map<JobTime,Boolean> action, List<String> filesToBeDeleted) throws org.apache.thrift.TException
     {
       completeJob_args args = new completeJob_args();
       args.setAction(action);
+      args.setFilesToBeDeleted(filesToBeDeleted);
       sendBase("completeJob", args);
     }
 
-    public JobTime recv_completeJob() throws org.apache.thrift.TException
+    public boolean recv_completeJob() throws org.apache.thrift.TException
     {
       completeJob_result result = new completeJob_result();
       receiveBase(result, "completeJob");
@@ -375,29 +376,32 @@ public class ComputeService {
       }
     }
 
-    public void completeJob(Map<JobTime,Boolean> action, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void completeJob(Map<JobTime,Boolean> action, List<String> filesToBeDeleted, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      completeJob_call method_call = new completeJob_call(action, resultHandler, this, ___protocolFactory, ___transport);
+      completeJob_call method_call = new completeJob_call(action, filesToBeDeleted, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class completeJob_call extends org.apache.thrift.async.TAsyncMethodCall {
       private Map<JobTime,Boolean> action;
-      public completeJob_call(Map<JobTime,Boolean> action, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private List<String> filesToBeDeleted;
+      public completeJob_call(Map<JobTime,Boolean> action, List<String> filesToBeDeleted, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.action = action;
+        this.filesToBeDeleted = filesToBeDeleted;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("completeJob", org.apache.thrift.protocol.TMessageType.CALL, 0));
         completeJob_args args = new completeJob_args();
         args.setAction(action);
+        args.setFilesToBeDeleted(filesToBeDeleted);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public JobTime getResult() throws org.apache.thrift.TException {
+      public boolean getResult() throws org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -565,7 +569,8 @@ public class ComputeService {
 
       public completeJob_result getResult(I iface, completeJob_args args) throws org.apache.thrift.TException {
         completeJob_result result = new completeJob_result();
-        result.success = iface.completeJob(args.action);
+        result.success = iface.completeJob(args.action, args.filesToBeDeleted);
+        result.setSuccessIsSet(true);
         return result;
       }
     }
@@ -786,7 +791,7 @@ public class ComputeService {
       }
     }
 
-    public static class completeJob<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, completeJob_args, JobTime> {
+    public static class completeJob<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, completeJob_args, Boolean> {
       public completeJob() {
         super("completeJob");
       }
@@ -795,12 +800,13 @@ public class ComputeService {
         return new completeJob_args();
       }
 
-      public AsyncMethodCallback<JobTime> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<Boolean> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<JobTime>() { 
-          public void onComplete(JobTime o) {
+        return new AsyncMethodCallback<Boolean>() { 
+          public void onComplete(Boolean o) {
             completeJob_result result = new completeJob_result();
             result.success = o;
+            result.setSuccessIsSet(true);
             try {
               fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
               return;
@@ -832,8 +838,8 @@ public class ComputeService {
         return false;
       }
 
-      public void start(I iface, completeJob_args args, org.apache.thrift.async.AsyncMethodCallback<JobTime> resultHandler) throws TException {
-        iface.completeJob(args.action,resultHandler);
+      public void start(I iface, completeJob_args args, org.apache.thrift.async.AsyncMethodCallback<Boolean> resultHandler) throws TException {
+        iface.completeJob(args.action, args.filesToBeDeleted,resultHandler);
       }
     }
 
@@ -4189,6 +4195,7 @@ public class ComputeService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("completeJob_args");
 
     private static final org.apache.thrift.protocol.TField ACTION_FIELD_DESC = new org.apache.thrift.protocol.TField("action", org.apache.thrift.protocol.TType.MAP, (short)1);
+    private static final org.apache.thrift.protocol.TField FILES_TO_BE_DELETED_FIELD_DESC = new org.apache.thrift.protocol.TField("filesToBeDeleted", org.apache.thrift.protocol.TType.LIST, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -4197,10 +4204,12 @@ public class ComputeService {
     }
 
     public Map<JobTime,Boolean> action; // required
+    public List<String> filesToBeDeleted; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      ACTION((short)1, "action");
+      ACTION((short)1, "action"),
+      FILES_TO_BE_DELETED((short)2, "filesToBeDeleted");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -4217,6 +4226,8 @@ public class ComputeService {
         switch(fieldId) {
           case 1: // ACTION
             return ACTION;
+          case 2: // FILES_TO_BE_DELETED
+            return FILES_TO_BE_DELETED;
           default:
             return null;
         }
@@ -4264,6 +4275,9 @@ public class ComputeService {
           new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
               new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, JobTime.class), 
               new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL))));
+      tmpMap.put(_Fields.FILES_TO_BE_DELETED, new org.apache.thrift.meta_data.FieldMetaData("filesToBeDeleted", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+              new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING))));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(completeJob_args.class, metaDataMap);
     }
@@ -4272,10 +4286,12 @@ public class ComputeService {
     }
 
     public completeJob_args(
-      Map<JobTime,Boolean> action)
+      Map<JobTime,Boolean> action,
+      List<String> filesToBeDeleted)
     {
       this();
       this.action = action;
+      this.filesToBeDeleted = filesToBeDeleted;
     }
 
     /**
@@ -4297,6 +4313,10 @@ public class ComputeService {
         }
         this.action = __this__action;
       }
+      if (other.isSetFilesToBeDeleted()) {
+        List<String> __this__filesToBeDeleted = new ArrayList<String>(other.filesToBeDeleted);
+        this.filesToBeDeleted = __this__filesToBeDeleted;
+      }
     }
 
     public completeJob_args deepCopy() {
@@ -4306,6 +4326,7 @@ public class ComputeService {
     @Override
     public void clear() {
       this.action = null;
+      this.filesToBeDeleted = null;
     }
 
     public int getActionSize() {
@@ -4343,6 +4364,45 @@ public class ComputeService {
       }
     }
 
+    public int getFilesToBeDeletedSize() {
+      return (this.filesToBeDeleted == null) ? 0 : this.filesToBeDeleted.size();
+    }
+
+    public java.util.Iterator<String> getFilesToBeDeletedIterator() {
+      return (this.filesToBeDeleted == null) ? null : this.filesToBeDeleted.iterator();
+    }
+
+    public void addToFilesToBeDeleted(String elem) {
+      if (this.filesToBeDeleted == null) {
+        this.filesToBeDeleted = new ArrayList<String>();
+      }
+      this.filesToBeDeleted.add(elem);
+    }
+
+    public List<String> getFilesToBeDeleted() {
+      return this.filesToBeDeleted;
+    }
+
+    public completeJob_args setFilesToBeDeleted(List<String> filesToBeDeleted) {
+      this.filesToBeDeleted = filesToBeDeleted;
+      return this;
+    }
+
+    public void unsetFilesToBeDeleted() {
+      this.filesToBeDeleted = null;
+    }
+
+    /** Returns true if field filesToBeDeleted is set (has been assigned a value) and false otherwise */
+    public boolean isSetFilesToBeDeleted() {
+      return this.filesToBeDeleted != null;
+    }
+
+    public void setFilesToBeDeletedIsSet(boolean value) {
+      if (!value) {
+        this.filesToBeDeleted = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case ACTION:
@@ -4353,6 +4413,14 @@ public class ComputeService {
         }
         break;
 
+      case FILES_TO_BE_DELETED:
+        if (value == null) {
+          unsetFilesToBeDeleted();
+        } else {
+          setFilesToBeDeleted((List<String>)value);
+        }
+        break;
+
       }
     }
 
@@ -4360,6 +4428,9 @@ public class ComputeService {
       switch (field) {
       case ACTION:
         return getAction();
+
+      case FILES_TO_BE_DELETED:
+        return getFilesToBeDeleted();
 
       }
       throw new IllegalStateException();
@@ -4374,6 +4445,8 @@ public class ComputeService {
       switch (field) {
       case ACTION:
         return isSetAction();
+      case FILES_TO_BE_DELETED:
+        return isSetFilesToBeDeleted();
       }
       throw new IllegalStateException();
     }
@@ -4400,6 +4473,15 @@ public class ComputeService {
           return false;
       }
 
+      boolean this_present_filesToBeDeleted = true && this.isSetFilesToBeDeleted();
+      boolean that_present_filesToBeDeleted = true && that.isSetFilesToBeDeleted();
+      if (this_present_filesToBeDeleted || that_present_filesToBeDeleted) {
+        if (!(this_present_filesToBeDeleted && that_present_filesToBeDeleted))
+          return false;
+        if (!this.filesToBeDeleted.equals(that.filesToBeDeleted))
+          return false;
+      }
+
       return true;
     }
 
@@ -4411,6 +4493,11 @@ public class ComputeService {
       list.add(present_action);
       if (present_action)
         list.add(action);
+
+      boolean present_filesToBeDeleted = true && (isSetFilesToBeDeleted());
+      list.add(present_filesToBeDeleted);
+      if (present_filesToBeDeleted)
+        list.add(filesToBeDeleted);
 
       return list.hashCode();
     }
@@ -4429,6 +4516,16 @@ public class ComputeService {
       }
       if (isSetAction()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.action, other.action);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetFilesToBeDeleted()).compareTo(other.isSetFilesToBeDeleted());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetFilesToBeDeleted()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.filesToBeDeleted, other.filesToBeDeleted);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -4458,6 +4555,14 @@ public class ComputeService {
         sb.append("null");
       } else {
         sb.append(this.action);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("filesToBeDeleted:");
+      if (this.filesToBeDeleted == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.filesToBeDeleted);
       }
       first = false;
       sb.append(")");
@@ -4524,6 +4629,24 @@ public class ComputeService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 2: // FILES_TO_BE_DELETED
+              if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
+                {
+                  org.apache.thrift.protocol.TList _list12 = iprot.readListBegin();
+                  struct.filesToBeDeleted = new ArrayList<String>(_list12.size);
+                  String _elem13;
+                  for (int _i14 = 0; _i14 < _list12.size; ++_i14)
+                  {
+                    _elem13 = iprot.readString();
+                    struct.filesToBeDeleted.add(_elem13);
+                  }
+                  iprot.readListEnd();
+                }
+                struct.setFilesToBeDeletedIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -4543,12 +4666,24 @@ public class ComputeService {
           oprot.writeFieldBegin(ACTION_FIELD_DESC);
           {
             oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRUCT, org.apache.thrift.protocol.TType.BOOL, struct.action.size()));
-            for (Map.Entry<JobTime, Boolean> _iter12 : struct.action.entrySet())
+            for (Map.Entry<JobTime, Boolean> _iter15 : struct.action.entrySet())
             {
-              _iter12.getKey().write(oprot);
-              oprot.writeBool(_iter12.getValue());
+              _iter15.getKey().write(oprot);
+              oprot.writeBool(_iter15.getValue());
             }
             oprot.writeMapEnd();
+          }
+          oprot.writeFieldEnd();
+        }
+        if (struct.filesToBeDeleted != null) {
+          oprot.writeFieldBegin(FILES_TO_BE_DELETED_FIELD_DESC);
+          {
+            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.filesToBeDeleted.size()));
+            for (String _iter16 : struct.filesToBeDeleted)
+            {
+              oprot.writeString(_iter16);
+            }
+            oprot.writeListEnd();
           }
           oprot.writeFieldEnd();
         }
@@ -4573,14 +4708,26 @@ public class ComputeService {
         if (struct.isSetAction()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetFilesToBeDeleted()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetAction()) {
           {
             oprot.writeI32(struct.action.size());
-            for (Map.Entry<JobTime, Boolean> _iter13 : struct.action.entrySet())
+            for (Map.Entry<JobTime, Boolean> _iter17 : struct.action.entrySet())
             {
-              _iter13.getKey().write(oprot);
-              oprot.writeBool(_iter13.getValue());
+              _iter17.getKey().write(oprot);
+              oprot.writeBool(_iter17.getValue());
+            }
+          }
+        }
+        if (struct.isSetFilesToBeDeleted()) {
+          {
+            oprot.writeI32(struct.filesToBeDeleted.size());
+            for (String _iter18 : struct.filesToBeDeleted)
+            {
+              oprot.writeString(_iter18);
             }
           }
         }
@@ -4589,22 +4736,35 @@ public class ComputeService {
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, completeJob_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TMap _map14 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRUCT, org.apache.thrift.protocol.TType.BOOL, iprot.readI32());
-            struct.action = new HashMap<JobTime,Boolean>(2*_map14.size);
-            JobTime _key15;
-            boolean _val16;
-            for (int _i17 = 0; _i17 < _map14.size; ++_i17)
+            org.apache.thrift.protocol.TMap _map19 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRUCT, org.apache.thrift.protocol.TType.BOOL, iprot.readI32());
+            struct.action = new HashMap<JobTime,Boolean>(2*_map19.size);
+            JobTime _key20;
+            boolean _val21;
+            for (int _i22 = 0; _i22 < _map19.size; ++_i22)
             {
-              _key15 = new JobTime();
-              _key15.read(iprot);
-              _val16 = iprot.readBool();
-              struct.action.put(_key15, _val16);
+              _key20 = new JobTime();
+              _key20.read(iprot);
+              _val21 = iprot.readBool();
+              struct.action.put(_key20, _val21);
             }
           }
           struct.setActionIsSet(true);
+        }
+        if (incoming.get(1)) {
+          {
+            org.apache.thrift.protocol.TList _list23 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+            struct.filesToBeDeleted = new ArrayList<String>(_list23.size);
+            String _elem24;
+            for (int _i25 = 0; _i25 < _list23.size; ++_i25)
+            {
+              _elem24 = iprot.readString();
+              struct.filesToBeDeleted.add(_elem24);
+            }
+          }
+          struct.setFilesToBeDeletedIsSet(true);
         }
       }
     }
@@ -4614,7 +4774,7 @@ public class ComputeService {
   public static class completeJob_result implements org.apache.thrift.TBase<completeJob_result, completeJob_result._Fields>, java.io.Serializable, Cloneable, Comparable<completeJob_result>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("completeJob_result");
 
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -4622,7 +4782,7 @@ public class ComputeService {
       schemes.put(TupleScheme.class, new completeJob_resultTupleSchemeFactory());
     }
 
-    public JobTime success; // required
+    public boolean success; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -4683,11 +4843,13 @@ public class ComputeService {
     }
 
     // isset id assignments
+    private static final int __SUCCESS_ISSET_ID = 0;
+    private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, JobTime.class)));
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(completeJob_result.class, metaDataMap);
     }
@@ -4696,19 +4858,19 @@ public class ComputeService {
     }
 
     public completeJob_result(
-      JobTime success)
+      boolean success)
     {
       this();
       this.success = success;
+      setSuccessIsSet(true);
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
     public completeJob_result(completeJob_result other) {
-      if (other.isSetSuccess()) {
-        this.success = new JobTime(other.success);
-      }
+      __isset_bitfield = other.__isset_bitfield;
+      this.success = other.success;
     }
 
     public completeJob_result deepCopy() {
@@ -4717,31 +4879,31 @@ public class ComputeService {
 
     @Override
     public void clear() {
-      this.success = null;
+      setSuccessIsSet(false);
+      this.success = false;
     }
 
-    public JobTime getSuccess() {
+    public boolean isSuccess() {
       return this.success;
     }
 
-    public completeJob_result setSuccess(JobTime success) {
+    public completeJob_result setSuccess(boolean success) {
       this.success = success;
+      setSuccessIsSet(true);
       return this;
     }
 
     public void unsetSuccess() {
-      this.success = null;
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __SUCCESS_ISSET_ID);
     }
 
     /** Returns true if field success is set (has been assigned a value) and false otherwise */
     public boolean isSetSuccess() {
-      return this.success != null;
+      return EncodingUtils.testBit(__isset_bitfield, __SUCCESS_ISSET_ID);
     }
 
     public void setSuccessIsSet(boolean value) {
-      if (!value) {
-        this.success = null;
-      }
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
     }
 
     public void setFieldValue(_Fields field, Object value) {
@@ -4750,7 +4912,7 @@ public class ComputeService {
         if (value == null) {
           unsetSuccess();
         } else {
-          setSuccess((JobTime)value);
+          setSuccess((Boolean)value);
         }
         break;
 
@@ -4760,7 +4922,7 @@ public class ComputeService {
     public Object getFieldValue(_Fields field) {
       switch (field) {
       case SUCCESS:
-        return getSuccess();
+        return isSuccess();
 
       }
       throw new IllegalStateException();
@@ -4792,12 +4954,12 @@ public class ComputeService {
       if (that == null)
         return false;
 
-      boolean this_present_success = true && this.isSetSuccess();
-      boolean that_present_success = true && that.isSetSuccess();
+      boolean this_present_success = true;
+      boolean that_present_success = true;
       if (this_present_success || that_present_success) {
         if (!(this_present_success && that_present_success))
           return false;
-        if (!this.success.equals(that.success))
+        if (this.success != that.success)
           return false;
       }
 
@@ -4808,7 +4970,7 @@ public class ComputeService {
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
 
-      boolean present_success = true && (isSetSuccess());
+      boolean present_success = true;
       list.add(present_success);
       if (present_success)
         list.add(success);
@@ -4855,11 +5017,7 @@ public class ComputeService {
       boolean first = true;
 
       sb.append("success:");
-      if (this.success == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.success);
-      }
+      sb.append(this.success);
       first = false;
       sb.append(")");
       return sb.toString();
@@ -4868,9 +5026,6 @@ public class ComputeService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
-      if (success != null) {
-        success.validate();
-      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -4883,6 +5038,8 @@ public class ComputeService {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bitfield = 0;
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
@@ -4908,9 +5065,8 @@ public class ComputeService {
           }
           switch (schemeField.id) {
             case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.success = new JobTime();
-                struct.success.read(iprot);
+              if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
+                struct.success = iprot.readBool();
                 struct.setSuccessIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -4931,9 +5087,9 @@ public class ComputeService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.success != null) {
+        if (struct.isSetSuccess()) {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-          struct.success.write(oprot);
+          oprot.writeBool(struct.success);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -4959,7 +5115,7 @@ public class ComputeService {
         }
         oprot.writeBitSet(optionals, 1);
         if (struct.isSetSuccess()) {
-          struct.success.write(oprot);
+          oprot.writeBool(struct.success);
         }
       }
 
@@ -4968,8 +5124,7 @@ public class ComputeService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
-          struct.success = new JobTime();
-          struct.success.read(iprot);
+          struct.success = iprot.readBool();
           struct.setSuccessIsSet(true);
         }
       }

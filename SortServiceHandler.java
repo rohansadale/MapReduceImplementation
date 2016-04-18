@@ -104,11 +104,12 @@ public class SortServiceHandler implements SortService.Iface
 
 	private ArrayList<sortJob> processSortJobs(ArrayList< ArrayList< sortJob > > jobs) throws TException
 	{
-		int finishedJobs 					= 0;
-		int failedReplicatedJobs			= 0;
+		int finishedJobs 			= 0;
+		int failedReplicatedJobs		= 0;
 		ArrayList<JobTime> killedJobs		= null;
-		ArrayList<sortJob> success 			= new ArrayList<sortJob>();
-		int [] hasProcessed 				= new int[jobs.size()];
+		ArrayList<sortJob> success 		= new ArrayList<sortJob>();
+		int [] hasProcessed 			= new int[jobs.size()];
+		boolean completeJobStatus		= false;
 		while(true)
 		{
 			for(int i=0;i<jobs.size();i++)
@@ -123,10 +124,10 @@ public class SortServiceHandler implements SortService.Iface
 				{
 					if(1==jobs.get(i).get(j).threadRunStatus)
 					{
-						killedJobs					= Util.getInstance().stopSortJob(jobs.get(i),j);
-						finishedJobs 				= finishedJobs+1;
-						redundantSortJobs 			= redundantSortJobs+killedJobs.size();
-						jobs.get(i).get(j).result 	= Util.getInstance().cleanSortJob(jobs.get(i).get(j),killedJobs);
+						killedJobs			= Util.getInstance().stopSortJob(jobs.get(i),j);
+						finishedJobs 			= finishedJobs+1;
+						redundantSortJobs 		= redundantSortJobs+killedJobs.size();
+						completeJobStatus	 	= Util.getInstance().cleanSortJob(jobs.get(i).get(j),killedJobs);
 						killedJobs.add(jobs.get(i).get(j).result);
 						success.add(jobs.get(i).get(j));
 						System.out.println("Timing " + jobs.get(i).get(j).result.time);
@@ -158,6 +159,7 @@ public class SortServiceHandler implements SortService.Iface
 		ArrayList<JobTime> killedJobs		= null;
 		ArrayList<mergeJob> success 		= new ArrayList<mergeJob>();
 		int [] hasProcessed 				= new int[jobs.size()];
+		boolean completeJobStatus		= false;
 		while(true)
 		{
 			for(int i=0;i<jobs.size();i++)
@@ -172,13 +174,13 @@ public class SortServiceHandler implements SortService.Iface
 				{
 					if(1==jobs.get(i).get(j).threadRunStatus)
 					{
-						killedJobs					= Util.getInstance().stopMergeJob(jobs.get(i),j);
-						finishedJobs 				= finishedJobs+1;
-						redundantMergeJobs 			= redundantMergeJobs+killedJobs.size();
-						jobs.get(i).get(j).result 	= Util.getInstance().cleanMergeJob(jobs.get(i).get(j),killedJobs);
+						killedJobs		= Util.getInstance().stopMergeJob(jobs.get(i),j);
+						finishedJobs 		= finishedJobs+1;
+						redundantMergeJobs 	= redundantMergeJobs+killedJobs.size();
+						completeJobStatus	= Util.getInstance().cleanMergeJob(jobs.get(i).get(j),killedJobs,jobs.get(i).get(j).files);
 						killedJobs.add(jobs.get(i).get(j).result);
 						success.add(jobs.get(i).get(j));
-						hasProcessed[i]				= 1;
+						hasProcessed[i]		= 1;
 						break;
 					}
 					if(2==jobs.get(i).get(j).threadRunStatus)
@@ -296,17 +298,18 @@ public class SortServiceHandler implements SortService.Iface
 			int finishedJobs					= 0;
 			int task_node_idx					= 0;
 			System.out.println("Started Fresh Round of Merging ....");
+			System.out.println("Files to be Meged ... "+ intermediateFiles.size());
 			for(int i=0;i<intermediateFiles.size();i=i+mergeTaskSize)
 			{
 				List<String> tFiles				= new ArrayList<String>();
-				task_node_idx					= rnd.nextInt(computeNodes.size());
+				Collections.shuffle(computeNodes);
 				for(int j=i;j<i+mergeTaskSize && j<intermediateFiles.size();j++)
 					tFiles.add(intermediateFiles.get(j));
 				ArrayList<mergeJob> replSortJob	= new ArrayList<mergeJob>();
 				for(int j=0;j<replication;j++)
 				{
 					mergeJob cmergeJob			= new mergeJob(jobId,i+jobs.size(),j,tFiles,
-														computeNodes.get(task_node_idx).ip,computeNodes.get(task_node_idx).port);
+														computeNodes.get(j).ip,computeNodes.get(j).port);
 					replSortJob.add(cmergeJob);
 				}
 				mjobs.add(replSortJob);

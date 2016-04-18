@@ -25,6 +25,8 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 		private HashMap<String, Boolean> mergeState;
 		private HashMap<String, String> sortFileMap;
 		private HashMap<String, String> mergeFileMap;
+		private HashMap<String, List<String>> mergeDelete;
+		private HashMap<String, Long> jobDuration;
 
 		public ComputeServiceHandler(String INPUT_DIRECTORY_KEY, String INTERMEDIATE_DIRECTORY_KEY, String OUTPUT_DIRECTORY_KEY,float failProbability){
 				this.INPUT_DIRECTORY_KEY = INPUT_DIRECTORY_KEY;
@@ -35,6 +37,8 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 				this.mergeState	= new HashMap<String, Boolean>();
 				this.sortFileMap	= new HashMap<String,String>();
 				this.mergeFileMap	= new HashMap<String,String>();				
+				this.mergeDelete = new HashMap<String, List<String>>();
+				this.jobDuration = new HashMap<String, Long>();
 
 				try{
 						CURRENT_NODE_IP = InetAddress.getLocalHost().getHostName();
@@ -56,7 +60,7 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 								return new JobTime("",(long)-1);
 						}
 
-						System.out.println("\nStarting Sort task for " + fileName);
+						//System.out.println("\nStarting Sort task for " + fileName);
 						long startTime = System.currentTimeMillis();
 						/*		
 								try
@@ -154,8 +158,9 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 						long elapsedTime = stopTime - startTime;
 
 
-						if(!sortState.get(sortStatusKey))
+						if(!sortState.get(sortStatusKey)){
 								return(new JobTime("", elapsedTime));			
+						}
 
 						System.out.println("Chunk Sorted for " + fileName + ", Offset - " + offset + " and Time taken =" + elapsedTime);
 						return(new JobTime(resultFileName, elapsedTime));		
@@ -188,6 +193,10 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 						mergeState.put(mergeStatusKey, true);
 						mergeFileMap.put(mergeStatusKey, outFileName);
 
+						System.out.println("\nStarting Merge task for " + outFileName );
+						System.out.println(" ================================================= ");
+						for(int i=0;i<files.size();i++) System.out.print(files.get(i) + " ");
+						System.out.println(" ================================================= ");
 						/*
 						   try
 						   {
@@ -197,7 +206,10 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 						 */
 						do{
 								try{		
-										for(int i = 0; i < n; i++){
+										for(int i = 0; i < n; i++)
+										{
+												if(!mergeState.get(mergeStatusKey))
+														break;
 												fp[i] = new Scanner(new File(absolutePath + "/" +  INTERMEDIATE_DIRECTORY_KEY + files.get(i)));
 												if(fp[i].hasNextInt()){
 														numbers[i] = fp[i].nextInt();						 
@@ -206,8 +218,10 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 														numbers[i] = Integer.MAX_VALUE;
 												}
 										}
+										if(!mergeState.get(mergeStatusKey))
+											break;
 
-										System.out.println("\nStarting Merge task for " + outFileName );
+										//System.out.println("\nStarting Merge task for " + outFileName );
 										FileWriter fw = new FileWriter(absolutePath + "/" +  INTERMEDIATE_DIRECTORY_KEY + outFileName);
 										PrintWriter pw = new PrintWriter(fw);
 
@@ -249,15 +263,15 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 										pw.close();
 										fw.close();
 
+
 										// Deleting intermediate sort/merge files
-										for(int i = 0; i < files.size(); i++){
-												File f = new File(absolutePath + "/" + INTERMEDIATE_DIRECTORY_KEY + files.get(i));
+										/* for(int i = 0; i < files.size(); i++){																							File f = new File(absolutePath + "/" + INTERMEDIATE_DIRECTORY_KEY + files.get(i));
 												f.delete();
 
 												// Check for proactiveness
 												if(!mergeState.get(mergeStatusKey))
 														break;
-										}			
+										} */			
 								}
 								catch(IOException e){
 										System.out.println("Something wrong with Input");
@@ -272,7 +286,9 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 						if(!mergeState.get(mergeStatusKey))
 								return(new JobTime("", elapsedTime));
 
-						System.out.println("Merge Completed! Time taken = " + elapsedTime);
+						mergeDelete.put(mergeStatusKey, files);
+						jobDuration.put(mergeStatusKey, elapsedTime);
+						System.out.println("Merge Completed for " + outFileName + " Time taken = " + elapsedTime);
 						return(new JobTime(outFileName, elapsedTime));
 				}
 
@@ -290,7 +306,7 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 				}
 
 				String absolutePath = System.getProperty("user.dir");
-				File file = new File(absolutePath + INTERMEDIATE_DIRECTORY_KEY + fileName);
+				File file = new File(absolutePath + "/" + INTERMEDIATE_DIRECTORY_KEY + fileName);
 				file.delete();
 				return true;
 		}
@@ -300,37 +316,61 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 				{
 						String key = jobId + String.valueOf(taskId) + String.valueOf(replId);
 						String fileName = "";
+                                                String absolutePath = System.getProperty("user.dir");
 						if(mergeState.containsKey(key)){
 								mergeState.put(key, false);
 								fileName = mergeFileMap.get(key);
+					
+								// Sleep for few ms before deleting merge files	
+								try{
+									Thread.sleep(100);
+								}catch(Exception e){
+									System.out.println("Thread Sleeping failed");
+								}
+
+								List<String>files = mergeDelete.get(key);
+								for(int i = 0; i < files.size(); i++){   
+										System.out.println("Deleting File - " + files.get(i));
+					                                        File f = new File(absolutePath + "/" + INTERMEDIATE_DIRECTORY_KEY + files.get(i));
+                                                                                f.delete();
+								}
+
 						}
 						else if(sortState.containsKey(key)){
 								sortState.put(key, false);
 								fileName = sortFileMap.get(key);
 						}
-
+//						System.out.println("Stop job file = " + fileName);
 						JobTime result	= new JobTime(fileName,(long)0);
 						return result;
 				}
 
 		@Override
-				public JobTime completeJob(Map<JobTime,Boolean> action)
+				public boolean completeJob(Map<JobTime,Boolean> action,List<String> filesToBeDeleted)
 				{
+						boolean result		= true;
 						String absolutePath = System.getProperty("user.dir");
 						String outFileName = "";	
 						for(Map.Entry<JobTime, Boolean> entry : action.entrySet()){
 								JobTime job = entry.getKey();
 								String fileName = job.filename; 
-								Boolean shouldDelete = entry.getValue();
+								Boolean shouldDelete = entry.getValue();								
+								System.out.println("To Delete = " + fileName + " and Bool = " + shouldDelete);
 								if(shouldDelete){
-										File file = new File(absolutePath + INTERMEDIATE_DIRECTORY_KEY + fileName);
-										file.delete();	
+										File file = new File(absolutePath + "/" + INTERMEDIATE_DIRECTORY_KEY + fileName);
+										if(file.exists())
+											result	= result & file.delete();	
 								}
 								else{
 										outFileName = fileName;
 								}
 						}
-						JobTime result	= new JobTime(outFileName,(long)0);
+						for(int i=0;i<filesToBeDeleted.size();i++)
+						{
+							File file = new File(absolutePath + "/" + INTERMEDIATE_DIRECTORY_KEY + filesToBeDeleted.get(i));
+							if(file.exists())
+								result	= result & file.delete();
+						}
 						return result;
 				}
 
@@ -345,6 +385,5 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 						if(sortFileMap.containsKey(key))
 								sortFileMap.remove(key);			
 				}
-
-
+		
 }

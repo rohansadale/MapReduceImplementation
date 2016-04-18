@@ -126,21 +126,21 @@ public class Util
     	return content;
     }
 
-    public static JobTime cleanSortJob(sortJob success,ArrayList<JobTime> killedJobs) throws TException
+    public static boolean cleanSortJob(sortJob success,ArrayList<JobTime> killedJobs) throws TException
 	{
 		HashMap<JobTime,Boolean> action 	= new HashMap<JobTime,Boolean>();
 		action.put(success.result,new Boolean(false));
 		for(int i=0;i<killedJobs.size();i++)
 			action.put(killedJobs.get(i),new Boolean(true));
 
-		JobTime result	= new JobTime("",(long)0);
+		boolean result	= false;
 		try
 		{
 			TTransport transport                = new TSocket(success.ip,success.port);
 			TProtocol protocol                  = new TBinaryProtocol(new TFramedTransport(transport));
 			ComputeService.Client client        = new ComputeService.Client(protocol);
 			transport.open();
-			result			                    = client.completeJob(action);
+			result			            = client.completeJob(action,new ArrayList<String>());
 			transport.close();
 		}
 		catch(TException x)
@@ -173,21 +173,21 @@ public class Util
 		return killedJobs;
 	}
 
-	public static JobTime cleanMergeJob(mergeJob success,ArrayList<JobTime> killedJobs) throws TException
+	public static boolean cleanMergeJob(mergeJob success,ArrayList<JobTime> killedJobs,List<String> filesToBeDeleted) throws TException
 	{
 		HashMap<JobTime,Boolean> action 	= new HashMap<JobTime,Boolean>();
 		action.put(success.result,new Boolean(false));
 		for(int i=0;i<killedJobs.size();i++)
 			action.put(killedJobs.get(i),new Boolean(true));
 
-		JobTime result	= new JobTime("",(long)0);
+		boolean result	= false;
 		try
 		{
 			TTransport transport                = new TSocket(success.ip,success.port);
 			TProtocol protocol                  = new TBinaryProtocol(new TFramedTransport(transport));
 			ComputeService.Client client        = new ComputeService.Client(protocol);
 			transport.open();
-			result			                    = client.completeJob(action);
+			result			                    = client.completeJob(action,filesToBeDeleted);
 			transport.close();
 		}
 		catch(TException x)
@@ -219,4 +219,5 @@ public class Util
 		}
 		return killedJobs;
 	}
+	
 }
