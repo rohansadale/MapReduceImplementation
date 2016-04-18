@@ -3,7 +3,7 @@ ServerPort:9088
 InputDirectory:Data/input/
 IntermediateDirectory:Data/intermediate/
 OutputDirectory:Data/output/
-ChunkSize:50000
-MergeTaskSize:10
-TaskReplication:1
-FailProbability:0.4
+ChunkSize:10000
+MergeTaskSize:3
+TaskReplication:3
+FailProbability:0.01

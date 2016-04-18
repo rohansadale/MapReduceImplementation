@@ -113,7 +113,11 @@ public class SortServiceHandler implements SortService.Iface
 		{
 			for(int i=0;i<jobs.size();i++)
 			{
-				if(1==hasProcessed[i]) continue;
+				if(1==hasProcessed[i]) 
+				{
+					finishedJobs			= finishedJobs+1;
+					continue;
+				}
 				failedReplicatedJobs 			= 0;
 				for(int j=0;j<jobs.get(i).size();j++)
 				{
@@ -125,17 +129,24 @@ public class SortServiceHandler implements SortService.Iface
 						jobs.get(i).get(j).result 	= Util.getInstance().cleanSortJob(jobs.get(i).get(j),killedJobs);
 						killedJobs.add(jobs.get(i).get(j).result);
 						success.add(jobs.get(i).get(j));
+						System.out.println("Timing " + jobs.get(i).get(j).result.time);
 						hasProcessed[i]				= 1;
+						break;
 					}
 					if(2==jobs.get(i).get(j).threadRunStatus)
 					{
-						sortFailedJobs 		= sortFailedJobs+1;
+						sortFailedJobs 			= sortFailedJobs+1;
 						failedReplicatedJobs	= failedReplicatedJobs+1;
 					}
 				}
-				if(failedReplicatedJobs==jobs.get(i).size()) return null;
+				if(failedReplicatedJobs==jobs.get(i).size()) 
+				{
+					success.clear();
+					return success;
+				}
 			}
 			if(finishedJobs==jobs.size()) break;
+			finishedJobs	= 0;
 		}
 		return success;
 	}
@@ -151,7 +162,11 @@ public class SortServiceHandler implements SortService.Iface
 		{
 			for(int i=0;i<jobs.size();i++)
 			{
-				if(1==hasProcessed[i]) continue;
+				if(1==hasProcessed[i]) 
+				{
+					finishedJobs			= finishedJobs+1;
+					continue;
+				}
 				failedReplicatedJobs 			= 0;
 				for(int j=0;j<jobs.get(i).size();j++)
 				{
@@ -164,6 +179,7 @@ public class SortServiceHandler implements SortService.Iface
 						killedJobs.add(jobs.get(i).get(j).result);
 						success.add(jobs.get(i).get(j));
 						hasProcessed[i]				= 1;
+						break;
 					}
 					if(2==jobs.get(i).get(j).threadRunStatus)
 					{
@@ -171,9 +187,14 @@ public class SortServiceHandler implements SortService.Iface
 						failedReplicatedJobs	= failedReplicatedJobs+1;
 					}
 				}
-				if(failedReplicatedJobs==jobs.get(i).size()) return null;
+				if(failedReplicatedJobs==jobs.get(i).size()) 
+				{
+					success.clear();
+					return success;
+				}
 			}
 			if(finishedJobs==jobs.size()) break;
+			finishedJobs	= 0;
 		}
 		return success;
 	}
@@ -199,6 +220,7 @@ public class SortServiceHandler implements SortService.Iface
 		System.out.println("Request received for sorting file " + filename);
 		clearVariables();
 		jobId			 = Util.getInstance().getJobId(filename);
+		System.out.println("JobId " + jobId);
 		JobStatus result = new JobStatus(false,"","");
 
 		if(0==computeNodes.size())
@@ -214,8 +236,8 @@ public class SortServiceHandler implements SortService.Iface
 			return result;
 		}
 
-		ArrayList< sortJob > sortResult		= doSort(inputDirectory+filename);
-		if(null==sortResult) 
+		ArrayList< sortJob > sortResult		= doSort(filename);
+		if(sortResult.isEmpty()==true) 
 			new JobStatus(false,"Sort Job Failed as more than half of the system went down","");
 		System.out.println("Sorting Task finished!!");
 		result 								= doMerge(sortResult);
@@ -228,7 +250,7 @@ public class SortServiceHandler implements SortService.Iface
 	{
 		File filename				= new File(inputDirectory+sortFile);
 		double fileSize				= filename.length();
-		int numTasks				= (int)Math.ceil(fileSize/chunkSize);
+		int numTasks				= Math.max(1,(int)Math.ceil(fileSize/chunkSize));
 		System.out.println("To sort " + sortFile + " " + numTasks + " Tasks are produced");
 
 		int offset					= 0;
@@ -261,15 +283,13 @@ public class SortServiceHandler implements SortService.Iface
 	{
 		JobStatus result 					= new JobStatus(false,"","");
 		System.out.println("Starting Merging files ..... ");
-
+		ArrayList<String> intermediateFiles = new ArrayList<String>();
+		for(int i=0;i<sortResult.size();i++)
+			intermediateFiles.add(sortResult.get(i).result.filename);
 		int seed 							= (int)((long)System.currentTimeMillis() % 1000);
         Random rnd 							= new Random(seed);
 		mergeJobs							= 0;
 		
-		ArrayList<String> intermediateFiles = new ArrayList<String>();
-		for(int i=0;i<sortResult.size();i++)
-			intermediateFiles.add(sortResult.get(i).result.filename);
-
 		while(true)
 		{
 			mjobs.clear();
@@ -365,7 +385,7 @@ public class SortServiceHandler implements SortService.Iface
 
 		System.out.println("\n\nSummary of the Task:-");
 		System.out.println("Number of Nodes used for processing:- 		" + initSystemSize);
-		System.out.println("Number of Nodes failed during processing:- 	" + (initSystemSize-taskSummary.size()));
+		System.out.println("Number of Nodes failed during processing:- 	" + (initSystemSize-computeNodes.size()));
 		System.out.println("Number of Sort Jobs Spawned:- 			" + (jobs.size()+sortFailedJobs));
 		System.out.println("Number of Sort Jobs failed:-  			" + sortFailedJobs);
 		System.out.println("Number of Merge Jobs Spawned:-			" + mergeJobs);
