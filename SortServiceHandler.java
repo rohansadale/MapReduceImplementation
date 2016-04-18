@@ -129,6 +129,7 @@ public class SortServiceHandler implements SortService.Iface
 						killedJobs				= Util.getInstance().stopSortJob(jobs.get(i),j);
 						finishedJobs 			= finishedJobs+1;
 						redundantSortJobs 		= redundantSortJobs+killedJobs.size();
+						sortFailedJobs			= sortFailedJobs+killedJobs.size();
 						//completeJobStatus	 	= Util.getInstance().cleanSortJob(jobs.get(i).get(j),killedJobs);
 						killedJobs.add(jobs.get(i).get(j).result);
 						success.add(jobs.get(i).get(j));
@@ -146,14 +147,6 @@ public class SortServiceHandler implements SortService.Iface
 			}
 			if(finishedJobs==jobs.size()) break;
 			finishedJobs	= 0;
-		}
-		for(int i=0;i<jobs.size();i++)
-		{
-			for(int j=0;j<jobs.get(i).size();j++)
-			{
-				if(2==jobs.get(i).get(j).threadRunStatus) 
-					sortFailedJobs          = sortFailedJobs+1;
-			}
 		}
 		return success;
 	}
@@ -180,8 +173,9 @@ public class SortServiceHandler implements SortService.Iface
 				{
 					if(1==jobs.get(i).get(j).threadRunStatus)
 					{
-						killedJobs		= Util.getInstance().stopMergeJob(jobs.get(i),j);
+						killedJobs			= Util.getInstance().stopMergeJob(jobs.get(i),j);
 						finishedJobs 		= finishedJobs+1;
+						mergeFailedJobs 	= mergeFailedJobs+killedJobs.size();
 						redundantMergeJobs 	= redundantMergeJobs+killedJobs.size();
 						//completeJobStatus	= Util.getInstance().cleanMergeJob(jobs.get(i).get(j),killedJobs,jobs.get(i).get(j).files);
 						killedJobs.add(jobs.get(i).get(j).result);
@@ -190,7 +184,7 @@ public class SortServiceHandler implements SortService.Iface
 						break;
 					}
 					if(2==jobs.get(i).get(j).threadRunStatus)
-						mergeFailedJobs 		= mergeFailedJobs+1;
+						failedReplicatedJobs	= failedReplicatedJobs+1;
 				}
 				if(failedReplicatedJobs==jobs.get(i).size()) 
 				{
@@ -200,14 +194,6 @@ public class SortServiceHandler implements SortService.Iface
 			}
 			if(finishedJobs==jobs.size()) break;
 			finishedJobs	= 0;
-		}
-		for(int i=0;i<jobs.size();i++)
-		{
-			for(int j=0;j<jobs.get(i).size();j++)
-			{
-				if(2==jobs.get(i).get(j).threadRunStatus) 
-					mergeFailedJobs 		= mergeFailedJobs+1;
-			}
 		}
 		return success;
 	}
@@ -334,10 +320,10 @@ public class SortServiceHandler implements SortService.Iface
 			{	
 				for(int j=0;j<mjobs.get(i).size();j++)
 					mjobs.get(i).get(j).start();
+				mergeJobs							= mergeJobs + mjobs.get(i).size();
 			}
 			ArrayList<mergeJob> success 		= processMergeJobs(mjobs);
 			intermediateFiles.clear();
-			mergeJobs							= mergeJobs + success.size();
 			for(int i=0;i<success.size();i++)
 			{
 					if(mergeCount.containsKey(success.get(i).ip)==false)
