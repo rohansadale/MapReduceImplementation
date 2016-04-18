@@ -337,7 +337,7 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 								fileName = sortFileMap.get(key);
 						}
 //						System.out.println("Stop job file = " + fileName);
-						JobTime result	= new JobTime(fileName,(long)0);
+						JobTime result	= new JobTime(fileName,(long)-1);
 						return result;
 				}
 
