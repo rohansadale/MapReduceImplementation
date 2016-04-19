@@ -8,7 +8,7 @@ import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.protocol.TBinaryProtocol;
 
-public class mergeJob extends Thread
+public class mergeJob implements Runnable
 {
 		public List<String> files;
 		public String ip;
@@ -27,6 +27,7 @@ public class mergeJob extends Thread
 				this.files				= files;
 		}
 
+		@Override
 		public void run()
 		{
 				try
@@ -45,7 +46,6 @@ public class mergeJob extends Thread
 
 				catch(TException x)
 				{
-						x.printStackTrace();
 						this.threadRunStatus				= 2;
 				}
 		}

@@ -8,7 +8,7 @@ import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.protocol.TBinaryProtocol;
 
-public class sortJob extends Thread
+public class sortJob implements Runnable
 {
 		public String filename;
 		public int offSet;
@@ -33,6 +33,7 @@ public class sortJob extends Thread
 				this.threadRunStatus	= 0;
 		}
 
+		@Override
 		public void run()
 		{
 				try

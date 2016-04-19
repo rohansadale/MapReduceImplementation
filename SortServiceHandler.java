@@ -24,6 +24,7 @@ public class SortServiceHandler implements SortService.Iface
 	private static HashMap<String,Long>	mergeDuration	= null;
 	private static HashMap<String,Integer> mergeCount	= null;
 	private static int initSystemSize					= 0;
+	private static int threadPoolCount 					= 50;
 	private static ArrayList<sortJob> jobs;
 	private static ArrayList<mergeJob> mjobs;
 
@@ -194,11 +195,13 @@ public class SortServiceHandler implements SortService.Iface
 	
 	private JobStatus sortAndMerge(ArrayList< sortJob > jobs) throws TException
 	{
+		ExecutorService executor = Executors.newFixedThreadPool(threadPoolCount);
 		for(int i=0;i<jobs.size();i++) 
 		{
 			System.out.println("Starting Job with id " + jobs.get(i).id + " on node " + jobs.get(i).ip);
-			jobs.get(i).start();
+			executor.execute(jobs.get(i));
 		}
+		
 
 		while(true)
 		{
@@ -209,15 +212,16 @@ public class SortServiceHandler implements SortService.Iface
 				if(2==jobs.get(i).threadRunStatus) 
 				{
 					sortFailedJobs		= sortFailedJobs + 1;
-					sortJob retry	= reAssignSortJob(jobs.get(i));
+					sortJob retry		= reAssignSortJob(jobs.get(i));
 					jobs.remove(i);
 					jobs.add(retry);
-					retry.start();
+					executor.execute(retry);
 				}
 			}
 			if(finishedJobs==jobs.size()) break;
 		}	
-		
+		executor.shutdown();
+
 		System.out.println("Sorting Task finished!!");	
 		List<String> intermediateFiles		= new ArrayList<String>();
 		for(int i=0;i<jobs.size();i++)
@@ -239,20 +243,21 @@ public class SortServiceHandler implements SortService.Iface
 		mergeJobs							= 0;	
 		while(true)
 		{	
+			ExecutorService executor 		= Executors.newFixedThreadPool(10);
 			mjobs.clear();
-			int finishedJobs					= 0;
-			int task_node_idx					= rnd.nextInt(computeNodes.size());
+			int finishedJobs				= 0;
+			int task_node_idx				= rnd.nextInt(computeNodes.size());
 			System.out.println("Started Fresh Round of Merging ....");
 			for(int i=0;i<intermediateFiles.size();i=i+mergeTaskSize)
 			{
-				List<String> tFiles					= new ArrayList<String>();
+				List<String> tFiles			= new ArrayList<String>();
 				for(int j=i;j<i+mergeTaskSize && j<intermediateFiles.size();j++) 
 					tFiles.add(intermediateFiles.get(j));
-				mergeJob cmergeJob				= new mergeJob(i,tFiles,computeNodes.get(task_node_idx).ip,computeNodes.get(task_node_idx).port);
+				mergeJob cmergeJob			= new mergeJob(i,tFiles,computeNodes.get(task_node_idx).ip,computeNodes.get(task_node_idx).port);
 				mjobs.add(cmergeJob);
 			}	
 			
-			for(int i=0;i<mjobs.size();i++) mjobs.get(i).start();
+			for(int i=0;i<mjobs.size();i++) executor.execute(mjobs.get(i));
 			while(true)
 			{
 				finishedJobs		= 0;
@@ -266,11 +271,12 @@ public class SortServiceHandler implements SortService.Iface
             	    	mergeJob retry   	= reAssignMergeJob(mjobs.get(i));
                 		mjobs.remove(i);
                 		mjobs.add(retry);
-                		retry.start();
+                		executor.execute(retry);
         			}
 				}
 				if(finishedJobs==mjobs.size()) break;
 			}
+			executor.shutdown();
 			intermediateFiles.clear();
 			mergeJobs						= mergeJobs + mjobs.size();
 			for(int i=0;i<mjobs.size();i++) 

@@ -4,6 +4,7 @@ import org.apache.thrift.transport.*;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.server.TThreadPoolServer;
+import org.apache.thrift.server.TNonblockingServer;
 import org.apache.thrift.protocol.TBinaryProtocol;
 
 public class Util
@@ -11,6 +12,7 @@ public class Util
 	private static int MOD 				= 107;
 	private static Util util 			= null;
 	public static int Transport_Size	= 512*1024*1024;
+	private static int TIME_OUT			= 120*10*1000;
 
 	//Creating Singleton instance of the class
 	public static Util getInstance()
@@ -34,25 +36,23 @@ public class Util
 	
 	public static TThreadPoolServer getServer(int Port,SortServiceHandler sortService) throws TTransportException
 	{
-		TServerTransport serverTransport    = new TServerSocket(Port,120*1000);
+		TServerTransport serverTransport    = new TServerSocket(Port,TIME_OUT);
         TTransportFactory factory           = new TFramedTransport.Factory(Transport_Size);
         SortService.Processor processor   	= new SortService.Processor(sortService);
         TThreadPoolServer.Args args         = new TThreadPoolServer.Args(serverTransport);
         args.processor(processor);
         args.transportFactory(factory);
-		args.maxWorkerThreads(10000);
 		return new TThreadPoolServer(args);
 	}
 
 	public static TThreadPoolServer getComputeServer(int Port,ComputeServiceHandler computeService) throws TTransportException
 	{
-		TServerTransport serverTransport    = new TServerSocket(Port,120*1000);
+		TServerTransport serverTransport    = new TServerSocket(Port,TIME_OUT);
         TTransportFactory factory           = new TFramedTransport.Factory(Transport_Size);
         ComputeService.Processor processor  = new ComputeService.Processor(computeService);
         TThreadPoolServer.Args args         = new TThreadPoolServer.Args(serverTransport);
         args.processor(processor);
         args.transportFactory(factory);
-		args.maxWorkerThreads(10000);
 		return new TThreadPoolServer(args);
 	}
 	
@@ -101,7 +101,7 @@ public class Util
                 long code = 0;
                 for(int i = 0 ; i < files.size(); i++){
                         String fileName = files.get(i);
-                        code += Integer.parseInt(fileName.substring(fileName.lastIndexOf('_') + 1));
+                        code += Long.parseLong(fileName.substring(fileName.lastIndexOf('_') + 1));
                 }
                 return String.valueOf(code);
         }
