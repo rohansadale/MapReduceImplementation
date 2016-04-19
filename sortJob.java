@@ -36,13 +36,14 @@ public class sortJob implements Runnable
 		@Override
 		public void run()
 		{
+				TTransport transport 					 	= null;
 				try
 				{
-						TTransport transport				= new TSocket(ip,port);
+						transport							= new TSocket(ip,port);
 						TProtocol protocol					= new TBinaryProtocol(new TFramedTransport(transport));
 						ComputeService.Client client		= new ComputeService.Client(protocol);
 						transport.open();
-						this.result							= client.doSort(filename,offSet,numToSort);
+						this.result							= client.doSort(filename,offSet,numToSort,id);
 						transport.close();
 						if(this.result.time==-1)
 								this.threadRunStatus = 2;
@@ -53,6 +54,7 @@ public class sortJob implements Runnable
 				catch(TException x)
 				{
 						this.threadRunStatus				= 2;
+						transport.close();
 				}
 		}
 }

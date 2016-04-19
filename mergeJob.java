@@ -30,13 +30,14 @@ public class mergeJob implements Runnable
 		@Override
 		public void run()
 		{
+				TTransport transport 						= null;
 				try
 				{
-						TTransport transport				= new TSocket(ip,port);
+						transport							= new TSocket(ip,port);
 						TProtocol protocol					= new TBinaryProtocol(new TFramedTransport(transport));
 						ComputeService.Client client		= new ComputeService.Client(protocol);
 						transport.open();
-						this.result							= client.doMerge(files);
+						this.result							= client.doMerge(files,id);
 						transport.close();
 						if(this.result.time==-1)
 								this.threadRunStatus = 2;
@@ -47,6 +48,7 @@ public class mergeJob implements Runnable
 				catch(TException x)
 				{
 						this.threadRunStatus				= 2;
+						transport.close();
 				}
 		}
 }

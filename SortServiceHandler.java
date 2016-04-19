@@ -240,10 +240,11 @@ public class SortServiceHandler implements SortService.Iface
 		
 		int seed 							= (int)((long)System.currentTimeMillis() % 1000);
         Random rnd 							= new Random(seed);
-		mergeJobs							= 0;	
+		mergeJobs							= 0;
+		int iter 							= 0;	
 		while(true)
 		{	
-			ExecutorService executor 		= Executors.newFixedThreadPool(10);
+			ExecutorService executor 		= Executors.newFixedThreadPool(threadPoolCount/10);
 			mjobs.clear();
 			int finishedJobs				= 0;
 			int task_node_idx				= rnd.nextInt(computeNodes.size());
@@ -253,8 +254,9 @@ public class SortServiceHandler implements SortService.Iface
 				List<String> tFiles			= new ArrayList<String>();
 				for(int j=i;j<i+mergeTaskSize && j<intermediateFiles.size();j++) 
 					tFiles.add(intermediateFiles.get(j));
-				mergeJob cmergeJob			= new mergeJob(i,tFiles,computeNodes.get(task_node_idx).ip,computeNodes.get(task_node_idx).port);
+				mergeJob cmergeJob			= new mergeJob(iter,tFiles,computeNodes.get(task_node_idx).ip,computeNodes.get(task_node_idx).port);
 				mjobs.add(cmergeJob);
+				iter 						= iter+1;
 			}	
 			
 			for(int i=0;i<mjobs.size();i++) executor.execute(mjobs.get(i));
@@ -301,24 +303,6 @@ public class SortServiceHandler implements SortService.Iface
 		return result;
 	}
 
-	private JobTime merge(List<String> intermediateFiles,String ip,int port) throws TException
-	{
-			JobTime result	= new JobTime("",(long)0);
-			try
-			{
-					TTransport transport                = new TSocket(ip,port);
-					TProtocol protocol                  = new TBinaryProtocol(new TFramedTransport(transport));
-					ComputeService.Client client        = new ComputeService.Client(protocol);
-					transport.open();
-					result			                    = client.doMerge(intermediateFiles);
-					transport.close();
-			}
-			catch(TException x)
-			{
-			}
-			return result;
-	}	
-
 	void removeNode(int idx)
 	{
 			System.out.println("Node with IP " + computeNodes.get(idx).ip + " failed !!!!!!!! Re-assigning its Task ...");
@@ -350,7 +334,7 @@ public class SortServiceHandler implements SortService.Iface
 			int seed 			= (int)((long)System.currentTimeMillis() % 1000);
 			Random rnd 			= new Random(seed);
 			int retry_task_idx  = rnd.nextInt(computeNodes.size());
-			System.out.println("Task with Id " + job.id + " will be re-assigned to node with IP " + computeNodes.get(retry_task_idx).ip);	
+			System.out.println("Sort Task with Id " + job.id + " will be re-assigned to node with IP " + computeNodes.get(retry_task_idx).ip);	
 			sortJob retry		= new sortJob(job.id,job.filename,job.offSet,job.numToSort,computeNodes.get(retry_task_idx).ip,computeNodes.get(retry_task_idx).port);
 			return retry;
 	}
@@ -360,7 +344,7 @@ public class SortServiceHandler implements SortService.Iface
 			int seed 			= (int)((long)System.currentTimeMillis() % 1000);
 			Random rnd 			= new Random(seed);
 			int retry_task_idx  = rnd.nextInt(computeNodes.size());
-			System.out.println("Task with Id " + job.id + " will be re-assigned to node with IP " + computeNodes.get(retry_task_idx).ip);	
+			System.out.println("Merge Task with Id " + job.id + " will be re-assigned to node with IP " + computeNodes.get(retry_task_idx).ip);	
 			mergeJob retry		= new mergeJob(job.id,job.files,computeNodes.get(retry_task_idx).ip,computeNodes.get(retry_task_idx).port);
 			return retry;
 	}

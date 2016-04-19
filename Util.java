@@ -9,10 +9,11 @@ import org.apache.thrift.protocol.TBinaryProtocol;
 
 public class Util
 {
-	private static int MOD 				= 107;
-	private static Util util 			= null;
-	public static int Transport_Size	= 512*1024*1024;
-	private static int TIME_OUT			= 120*10*1000;
+	private static int MOD 					= 107;
+	private static Util util 				= null;
+	public static int Transport_Size		= 512*1024*1024;
+	private static int TIME_OUT				= 120*10*1000;
+	private static int MAX_WORKER_THREADS 	= 1000000;
 
 	//Creating Singleton instance of the class
 	public static Util getInstance()
@@ -42,6 +43,7 @@ public class Util
         TThreadPoolServer.Args args         = new TThreadPoolServer.Args(serverTransport);
         args.processor(processor);
         args.transportFactory(factory);
+        args.maxWorkerThreads(MAX_WORKER_THREADS);
 		return new TThreadPoolServer(args);
 	}
 
@@ -53,6 +55,7 @@ public class Util
         TThreadPoolServer.Args args         = new TThreadPoolServer.Args(serverTransport);
         args.processor(processor);
         args.transportFactory(factory);
+        args.maxWorkerThreads(MAX_WORKER_THREADS);
 		return new TThreadPoolServer(args);
 	}
 	
@@ -99,9 +102,11 @@ public class Util
         public static String hashFile(List<String> files){
 
                 long code = 0;
+                int hash = 3;
+                int power = 0;
                 for(int i = 0 ; i < files.size(); i++){
-                        String fileName = files.get(i);
-                        code += Long.parseLong(fileName.substring(fileName.lastIndexOf('_') + 1));
+                     String fileName = files.get(i);
+                        code += (long)Math.pow(hash, power) + Long.parseLong(fileName.substring(fileName.lastIndexOf('_') + 1));
                 }
                 return String.valueOf(code);
         }

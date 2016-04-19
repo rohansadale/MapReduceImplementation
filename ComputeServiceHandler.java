@@ -29,7 +29,7 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 
 		// Sort Task
 		@Override
-				public JobTime doSort(String fileName, int offset, int count)
+				public JobTime doSort(String fileName, int offset, int count,int file_id)
 				{
 						float curProbability				= rnd.nextFloat();
 						if(curProbability  < this.failProbability)
@@ -103,7 +103,7 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 										numbers[i-j] = Integer.parseInt(temp_numbers[i]);
 								Arrays.sort(numbers);
 
-								resultFileName	= INTERMEDIATE_DIRECTORY_KEY + fileName + "_" + offset;
+								resultFileName	= INTERMEDIATE_DIRECTORY_KEY + fileName + "_" + file_id;
 								FileWriter fw = new FileWriter(resultFileName);
 
 								for(int i = 0; i < numbers.length; i++){
@@ -117,7 +117,7 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 						long elapsedTime = stopTime - startTime;
 
 						System.out.println("Chunk Sorted for " + fileName + ", Offset - " + offset + " and Time taken =" + elapsedTime);
-						return(new JobTime(fileName+"_"+offset, elapsedTime));		
+						return(new JobTime(fileName+"_"+file_id, elapsedTime));		
 				} 
 
 		@Override
@@ -125,10 +125,22 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 						return true;
 				}
 
+		@Override
+				public boolean cleanJob()
+				{
+						boolean result = true;
+						File folder = new File(INTERMEDIATE_DIRECTORY_KEY);
+						for(File file:folder.listFiles())
+						{
+							if(!file.isDirectory())
+								result = result & file.delete();
+						}
+						return result;
+				}
 
 		// Merge Task
 		@Override
-				public JobTime doMerge(List<String> files)
+				public JobTime doMerge(List<String> files,int file_id)
 				{
 
 						try
@@ -140,11 +152,12 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 										return new JobTime("",(long)-1);
 								}
 
+								if(1==files.size()) return new JobTime(files.get(0),(long)0);
 								long startTime = System.currentTimeMillis();	
 								int n = files.size();
 								int [] numbers = new int[n];
 								Scanner[] fp = new Scanner[n];
-								String outFileName = "merge_" + Util.hashFile(files);	
+								String outFileName = "merge_" + file_id;	
 								String absolutePath = System.getProperty("user.dir");
 
 								try
@@ -202,6 +215,8 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 								}
 								catch(IOException e)
 								{
+									System.out.println("Here --1 "+e);
+									return new JobTime("",(long)-1);
 								}
 
 								// Stop time
@@ -210,6 +225,10 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 								System.out.println("Merge Completed! Time taken = " + elapsedTime);
 								return(new JobTime(outFileName, elapsedTime));
 						}
-						catch(Exception e) { return new JobTime("",(long)-1);}
+						catch(Exception e) 
+						{
+							System.out.println("Here -- 2"+e); 
+							return new JobTime("",(long)-1);
+						}
 					}
 			}
