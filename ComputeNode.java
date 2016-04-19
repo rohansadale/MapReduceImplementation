@@ -25,6 +25,7 @@ public class ComputeNode{
 		private static String MERGE_SIZE_KEY = "MergeTaskSize";
 		private static List<Node> activeNodes = null;
 		private static String FAIL_PROBABILITY_KEY = "FailProbability";
+		private static String PROACTIVE_KEY	= "Proactive";
 
 		public static void main(String targs[]) throws TException{
 				try{
@@ -71,7 +72,8 @@ public class ComputeNode{
 						ComputeServiceHandler computeService = new ComputeServiceHandler(configParam.get(INPUT_DIRECTORY_KEY),
 										configParam.get(INTERMEDIATE_DIRECTORY_KEY),
 										configParam.get(OUTPUT_DIRECTORY_KEY),
-										Float.parseFloat(configParam.get(FAIL_PROBABILITY_KEY)));
+										Float.parseFloat(configParam.get(FAIL_PROBABILITY_KEY)),
+										Integer.parseInt(configParam.get(PROACTIVE_KEY)));
 
 						TThreadPoolServer server 			= Util.getInstance().getComputeServer(CURRENT_NODE_PORT,computeService);
 						System.out.println("Starting Compute Node at " + CURRENT_NODE_IP + " and Port " + CURRENT_NODE_PORT + "  ....");

@@ -20,7 +20,7 @@ public class mergeJob implements Runnable
 		public int taskId;
 		public int replId;
 
-		public mergeJob(String jobId,int taskId,int replId,int id,List<String> files,String ip,int port)
+		public mergeJob(String jobId,int taskId,int replId,List<String> files,String ip,int port)
 		{
 			this.jobId 				= jobId;
 			this.taskId				= taskId;

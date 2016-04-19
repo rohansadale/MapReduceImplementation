@@ -1,5 +1,7 @@
 import java.util.*;
 import java.io.*;
+import java.security.NoSuchAlgorithmException;
+import java.security.MessageDigest;
 import org.apache.thrift.transport.*;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TProtocol;
@@ -111,27 +113,92 @@ public class Util
             return String.valueOf(code);
     }
 
-    public static boolean cleanIntermediateFiles(String ip,int port)
+	public static ArrayList<JobTime> stopSortJob(ArrayList< sortJob > jobs,int idx) throws TException
+	{
+		ArrayList<JobTime> killedJobs	= new ArrayList<JobTime>();
+		for(int i=0;i<jobs.size();i++)
+		{
+			if(i==idx) continue;
+			jobs.get(i).threadRunStatus				= 2;
+			JobTime result	= new JobTime("",(long)0);
+			try
+			{
+				TTransport transport                = new TSocket(jobs.get(i).ip,jobs.get(i).port);
+				TProtocol protocol                  = new TBinaryProtocol(new TFramedTransport(transport));
+				ComputeService.Client client        = new ComputeService.Client(protocol);
+				transport.open();
+				result			                    = client.stopJob(jobs.get(i).jobId,jobs.get(i).taskId,jobs.get(i).replId);
+				transport.close();
+			}
+			catch(TException x)
+			{
+			}
+			killedJobs.add(result);
+		}
+		return killedJobs;
+	}
+
+    public static ArrayList<JobTime> stopMergeJob(ArrayList< mergeJob > jobs,int idx) throws TException
+	{
+		ArrayList<JobTime> killedJobs	= new ArrayList<JobTime>();
+		for(int i=0;i<jobs.size();i++)
+		{
+			if(i==idx) continue;
+			jobs.get(i).threadRunStatus				= 2;
+			JobTime result	= new JobTime("",(long)0);
+			try
+			{
+				TTransport transport                = new TSocket(jobs.get(i).ip,jobs.get(i).port);
+				TProtocol protocol                  = new TBinaryProtocol(new TFramedTransport(transport));
+				ComputeService.Client client        = new ComputeService.Client(protocol);
+				transport.open();
+				result			                    = client.stopJob(jobs.get(i).jobId,jobs.get(i).taskId,jobs.get(i).replId);
+				transport.close();
+			}
+			catch(TException x)
+			{
+			}
+			killedJobs.add(result);
+		}
+		return killedJobs;
+	}
+
+	public static String getJobId(String filename)
+    {
+    	String content = "";
+    	try
+    	{
+	    	MessageDigest md = MessageDigest.getInstance("MD5");
+	        md.update(filename.getBytes());
+	        byte byteData[] = md.digest();
+
+	        StringBuffer sb = new StringBuffer();
+	        for (int i = 0; i < byteData.length; i++) 
+	        	sb.append(Integer.toString((byteData[i] & 0xff) + 0x100, 16).substring(1));
+	        content 	=  sb.toString().substring(0,10);
+    	}
+    	catch(NoSuchAlgorithmException e) {}
+    	return content;
+    }
+
+	public static boolean cleanIntermediateFiles(String ip,int port)
     {
     	TTransport transport 					 	= null;
+		boolean result								= false;
 		try
 		{
 				transport							= new TSocket(ip,port);
 				TProtocol protocol					= new TBinaryProtocol(new TFramedTransport(transport));
 				ComputeService.Client client		= new ComputeService.Client(protocol);
 				transport.open();
-				this.result							= client.cleanJob(filename,offSet,numToSort,"0_"+jobId+"_"+taskId+"_"+replId);
+				result								= client.cleanJob();
 				transport.close();
-				if(this.result.time==-1)
-						this.threadRunStatus = 2;
-				else
-						this.threadRunStatus = 1;
 		}
 
 		catch(TException x)
 		{
-				this.threadRunStatus				= 2;
 				transport.close();
 		}
+		return result;
     }
 }

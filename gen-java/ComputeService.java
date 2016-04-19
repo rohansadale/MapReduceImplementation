@@ -37,9 +37,11 @@ public class ComputeService {
 
   public interface Iface {
 
-    public JobTime doSort(String filename, int offset, int toSort, int id) throws org.apache.thrift.TException;
+    public JobTime doSort(String filename, int offset, int toSort, String id) throws org.apache.thrift.TException;
 
-    public JobTime doMerge(List<String> files, int id) throws org.apache.thrift.TException;
+    public JobTime doMerge(List<String> files, String id) throws org.apache.thrift.TException;
+
+    public JobTime stopJob(String jobId, int taskId, int replId) throws org.apache.thrift.TException;
 
     public boolean cleanJob() throws org.apache.thrift.TException;
 
@@ -49,9 +51,11 @@ public class ComputeService {
 
   public interface AsyncIface {
 
-    public void doSort(String filename, int offset, int toSort, int id, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void doSort(String filename, int offset, int toSort, String id, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void doMerge(List<String> files, int id, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void doMerge(List<String> files, String id, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+
+    public void stopJob(String jobId, int taskId, int replId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void cleanJob(org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -79,13 +83,13 @@ public class ComputeService {
       super(iprot, oprot);
     }
 
-    public JobTime doSort(String filename, int offset, int toSort, int id) throws org.apache.thrift.TException
+    public JobTime doSort(String filename, int offset, int toSort, String id) throws org.apache.thrift.TException
     {
       send_doSort(filename, offset, toSort, id);
       return recv_doSort();
     }
 
-    public void send_doSort(String filename, int offset, int toSort, int id) throws org.apache.thrift.TException
+    public void send_doSort(String filename, int offset, int toSort, String id) throws org.apache.thrift.TException
     {
       doSort_args args = new doSort_args();
       args.setFilename(filename);
@@ -105,13 +109,13 @@ public class ComputeService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "doSort failed: unknown result");
     }
 
-    public JobTime doMerge(List<String> files, int id) throws org.apache.thrift.TException
+    public JobTime doMerge(List<String> files, String id) throws org.apache.thrift.TException
     {
       send_doMerge(files, id);
       return recv_doMerge();
     }
 
-    public void send_doMerge(List<String> files, int id) throws org.apache.thrift.TException
+    public void send_doMerge(List<String> files, String id) throws org.apache.thrift.TException
     {
       doMerge_args args = new doMerge_args();
       args.setFiles(files);
@@ -127,6 +131,31 @@ public class ComputeService {
         return result.success;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "doMerge failed: unknown result");
+    }
+
+    public JobTime stopJob(String jobId, int taskId, int replId) throws org.apache.thrift.TException
+    {
+      send_stopJob(jobId, taskId, replId);
+      return recv_stopJob();
+    }
+
+    public void send_stopJob(String jobId, int taskId, int replId) throws org.apache.thrift.TException
+    {
+      stopJob_args args = new stopJob_args();
+      args.setJobId(jobId);
+      args.setTaskId(taskId);
+      args.setReplId(replId);
+      sendBase("stopJob", args);
+    }
+
+    public JobTime recv_stopJob() throws org.apache.thrift.TException
+    {
+      stopJob_result result = new stopJob_result();
+      receiveBase(result, "stopJob");
+      if (result.isSetSuccess()) {
+        return result.success;
+      }
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "stopJob failed: unknown result");
     }
 
     public boolean cleanJob() throws org.apache.thrift.TException
@@ -191,7 +220,7 @@ public class ComputeService {
       super(protocolFactory, clientManager, transport);
     }
 
-    public void doSort(String filename, int offset, int toSort, int id, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void doSort(String filename, int offset, int toSort, String id, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
       doSort_call method_call = new doSort_call(filename, offset, toSort, id, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
@@ -202,8 +231,8 @@ public class ComputeService {
       private String filename;
       private int offset;
       private int toSort;
-      private int id;
-      public doSort_call(String filename, int offset, int toSort, int id, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private String id;
+      public doSort_call(String filename, int offset, int toSort, String id, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.filename = filename;
         this.offset = offset;
@@ -232,7 +261,7 @@ public class ComputeService {
       }
     }
 
-    public void doMerge(List<String> files, int id, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void doMerge(List<String> files, String id, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
       doMerge_call method_call = new doMerge_call(files, id, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
@@ -241,8 +270,8 @@ public class ComputeService {
 
     public static class doMerge_call extends org.apache.thrift.async.TAsyncMethodCall {
       private List<String> files;
-      private int id;
-      public doMerge_call(List<String> files, int id, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private String id;
+      public doMerge_call(List<String> files, String id, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.files = files;
         this.id = id;
@@ -264,6 +293,44 @@ public class ComputeService {
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
         return (new Client(prot)).recv_doMerge();
+      }
+    }
+
+    public void stopJob(String jobId, int taskId, int replId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+      checkReady();
+      stopJob_call method_call = new stopJob_call(jobId, taskId, replId, resultHandler, this, ___protocolFactory, ___transport);
+      this.___currentMethod = method_call;
+      ___manager.call(method_call);
+    }
+
+    public static class stopJob_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private String jobId;
+      private int taskId;
+      private int replId;
+      public stopJob_call(String jobId, int taskId, int replId, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+        super(client, protocolFactory, transport, resultHandler, false);
+        this.jobId = jobId;
+        this.taskId = taskId;
+        this.replId = replId;
+      }
+
+      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("stopJob", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        stopJob_args args = new stopJob_args();
+        args.setJobId(jobId);
+        args.setTaskId(taskId);
+        args.setReplId(replId);
+        args.write(prot);
+        prot.writeMessageEnd();
+      }
+
+      public JobTime getResult() throws org.apache.thrift.TException {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
+          throw new IllegalStateException("Method call not finished!");
+        }
+        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
+        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
+        return (new Client(prot)).recv_stopJob();
       }
     }
 
@@ -340,6 +407,7 @@ public class ComputeService {
     private static <I extends Iface> Map<String,  org.apache.thrift.ProcessFunction<I, ? extends  org.apache.thrift.TBase>> getProcessMap(Map<String,  org.apache.thrift.ProcessFunction<I, ? extends  org.apache.thrift.TBase>> processMap) {
       processMap.put("doSort", new doSort());
       processMap.put("doMerge", new doMerge());
+      processMap.put("stopJob", new stopJob());
       processMap.put("cleanJob", new cleanJob());
       processMap.put("ping", new ping());
       return processMap;
@@ -381,6 +449,26 @@ public class ComputeService {
       public doMerge_result getResult(I iface, doMerge_args args) throws org.apache.thrift.TException {
         doMerge_result result = new doMerge_result();
         result.success = iface.doMerge(args.files, args.id);
+        return result;
+      }
+    }
+
+    public static class stopJob<I extends Iface> extends org.apache.thrift.ProcessFunction<I, stopJob_args> {
+      public stopJob() {
+        super("stopJob");
+      }
+
+      public stopJob_args getEmptyArgsInstance() {
+        return new stopJob_args();
+      }
+
+      protected boolean isOneway() {
+        return false;
+      }
+
+      public stopJob_result getResult(I iface, stopJob_args args) throws org.apache.thrift.TException {
+        stopJob_result result = new stopJob_result();
+        result.success = iface.stopJob(args.jobId, args.taskId, args.replId);
         return result;
       }
     }
@@ -442,6 +530,7 @@ public class ComputeService {
     private static <I extends AsyncIface> Map<String,  org.apache.thrift.AsyncProcessFunction<I, ? extends  org.apache.thrift.TBase,?>> getProcessMap(Map<String,  org.apache.thrift.AsyncProcessFunction<I, ? extends  org.apache.thrift.TBase, ?>> processMap) {
       processMap.put("doSort", new doSort());
       processMap.put("doMerge", new doMerge());
+      processMap.put("stopJob", new stopJob());
       processMap.put("cleanJob", new cleanJob());
       processMap.put("ping", new ping());
       return processMap;
@@ -546,6 +635,57 @@ public class ComputeService {
 
       public void start(I iface, doMerge_args args, org.apache.thrift.async.AsyncMethodCallback<JobTime> resultHandler) throws TException {
         iface.doMerge(args.files, args.id,resultHandler);
+      }
+    }
+
+    public static class stopJob<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, stopJob_args, JobTime> {
+      public stopJob() {
+        super("stopJob");
+      }
+
+      public stopJob_args getEmptyArgsInstance() {
+        return new stopJob_args();
+      }
+
+      public AsyncMethodCallback<JobTime> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+        final org.apache.thrift.AsyncProcessFunction fcall = this;
+        return new AsyncMethodCallback<JobTime>() { 
+          public void onComplete(JobTime o) {
+            stopJob_result result = new stopJob_result();
+            result.success = o;
+            try {
+              fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
+              return;
+            } catch (Exception e) {
+              LOGGER.error("Exception writing to internal frame buffer", e);
+            }
+            fb.close();
+          }
+          public void onError(Exception e) {
+            byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
+            org.apache.thrift.TBase msg;
+            stopJob_result result = new stopJob_result();
+            {
+              msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
+              msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
+            }
+            try {
+              fcall.sendResponse(fb,msg,msgType,seqid);
+              return;
+            } catch (Exception ex) {
+              LOGGER.error("Exception writing to internal frame buffer", ex);
+            }
+            fb.close();
+          }
+        };
+      }
+
+      protected boolean isOneway() {
+        return false;
+      }
+
+      public void start(I iface, stopJob_args args, org.apache.thrift.async.AsyncMethodCallback<JobTime> resultHandler) throws TException {
+        iface.stopJob(args.jobId, args.taskId, args.replId,resultHandler);
       }
     }
 
@@ -661,7 +801,7 @@ public class ComputeService {
     private static final org.apache.thrift.protocol.TField FILENAME_FIELD_DESC = new org.apache.thrift.protocol.TField("filename", org.apache.thrift.protocol.TType.STRING, (short)1);
     private static final org.apache.thrift.protocol.TField OFFSET_FIELD_DESC = new org.apache.thrift.protocol.TField("offset", org.apache.thrift.protocol.TType.I32, (short)2);
     private static final org.apache.thrift.protocol.TField TO_SORT_FIELD_DESC = new org.apache.thrift.protocol.TField("toSort", org.apache.thrift.protocol.TType.I32, (short)3);
-    private static final org.apache.thrift.protocol.TField ID_FIELD_DESC = new org.apache.thrift.protocol.TField("id", org.apache.thrift.protocol.TType.I32, (short)4);
+    private static final org.apache.thrift.protocol.TField ID_FIELD_DESC = new org.apache.thrift.protocol.TField("id", org.apache.thrift.protocol.TType.STRING, (short)4);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -672,7 +812,7 @@ public class ComputeService {
     public String filename; // required
     public int offset; // required
     public int toSort; // required
-    public int id; // required
+    public String id; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -744,7 +884,6 @@ public class ComputeService {
     // isset id assignments
     private static final int __OFFSET_ISSET_ID = 0;
     private static final int __TOSORT_ISSET_ID = 1;
-    private static final int __ID_ISSET_ID = 2;
     private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
@@ -756,7 +895,7 @@ public class ComputeService {
       tmpMap.put(_Fields.TO_SORT, new org.apache.thrift.meta_data.FieldMetaData("toSort", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
       tmpMap.put(_Fields.ID, new org.apache.thrift.meta_data.FieldMetaData("id", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(doSort_args.class, metaDataMap);
     }
@@ -768,7 +907,7 @@ public class ComputeService {
       String filename,
       int offset,
       int toSort,
-      int id)
+      String id)
     {
       this();
       this.filename = filename;
@@ -777,7 +916,6 @@ public class ComputeService {
       this.toSort = toSort;
       setToSortIsSet(true);
       this.id = id;
-      setIdIsSet(true);
     }
 
     /**
@@ -790,7 +928,9 @@ public class ComputeService {
       }
       this.offset = other.offset;
       this.toSort = other.toSort;
-      this.id = other.id;
+      if (other.isSetId()) {
+        this.id = other.id;
+      }
     }
 
     public doSort_args deepCopy() {
@@ -804,8 +944,7 @@ public class ComputeService {
       this.offset = 0;
       setToSortIsSet(false);
       this.toSort = 0;
-      setIdIsSet(false);
-      this.id = 0;
+      this.id = null;
     }
 
     public String getFilename() {
@@ -878,27 +1017,28 @@ public class ComputeService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __TOSORT_ISSET_ID, value);
     }
 
-    public int getId() {
+    public String getId() {
       return this.id;
     }
 
-    public doSort_args setId(int id) {
+    public doSort_args setId(String id) {
       this.id = id;
-      setIdIsSet(true);
       return this;
     }
 
     public void unsetId() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __ID_ISSET_ID);
+      this.id = null;
     }
 
     /** Returns true if field id is set (has been assigned a value) and false otherwise */
     public boolean isSetId() {
-      return EncodingUtils.testBit(__isset_bitfield, __ID_ISSET_ID);
+      return this.id != null;
     }
 
     public void setIdIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __ID_ISSET_ID, value);
+      if (!value) {
+        this.id = null;
+      }
     }
 
     public void setFieldValue(_Fields field, Object value) {
@@ -931,7 +1071,7 @@ public class ComputeService {
         if (value == null) {
           unsetId();
         } else {
-          setId((Integer)value);
+          setId((String)value);
         }
         break;
 
@@ -1015,12 +1155,12 @@ public class ComputeService {
           return false;
       }
 
-      boolean this_present_id = true;
-      boolean that_present_id = true;
+      boolean this_present_id = true && this.isSetId();
+      boolean that_present_id = true && that.isSetId();
       if (this_present_id || that_present_id) {
         if (!(this_present_id && that_present_id))
           return false;
-        if (this.id != that.id)
+        if (!this.id.equals(that.id))
           return false;
       }
 
@@ -1046,7 +1186,7 @@ public class ComputeService {
       if (present_toSort)
         list.add(toSort);
 
-      boolean present_id = true;
+      boolean present_id = true && (isSetId());
       list.add(present_id);
       if (present_id)
         list.add(id);
@@ -1139,7 +1279,11 @@ public class ComputeService {
       first = false;
       if (!first) sb.append(", ");
       sb.append("id:");
-      sb.append(this.id);
+      if (this.id == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.id);
+      }
       first = false;
       sb.append(")");
       return sb.toString();
@@ -1211,8 +1355,8 @@ public class ComputeService {
               }
               break;
             case 4: // ID
-              if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-                struct.id = iprot.readI32();
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+                struct.id = iprot.readString();
                 struct.setIdIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -1244,9 +1388,11 @@ public class ComputeService {
         oprot.writeFieldBegin(TO_SORT_FIELD_DESC);
         oprot.writeI32(struct.toSort);
         oprot.writeFieldEnd();
-        oprot.writeFieldBegin(ID_FIELD_DESC);
-        oprot.writeI32(struct.id);
-        oprot.writeFieldEnd();
+        if (struct.id != null) {
+          oprot.writeFieldBegin(ID_FIELD_DESC);
+          oprot.writeString(struct.id);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -1288,7 +1434,7 @@ public class ComputeService {
           oprot.writeI32(struct.toSort);
         }
         if (struct.isSetId()) {
-          oprot.writeI32(struct.id);
+          oprot.writeString(struct.id);
         }
       }
 
@@ -1309,7 +1455,7 @@ public class ComputeService {
           struct.setToSortIsSet(true);
         }
         if (incoming.get(3)) {
-          struct.id = iprot.readI32();
+          struct.id = iprot.readString();
           struct.setIdIsSet(true);
         }
       }
@@ -1687,7 +1833,7 @@ public class ComputeService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("doMerge_args");
 
     private static final org.apache.thrift.protocol.TField FILES_FIELD_DESC = new org.apache.thrift.protocol.TField("files", org.apache.thrift.protocol.TType.LIST, (short)1);
-    private static final org.apache.thrift.protocol.TField ID_FIELD_DESC = new org.apache.thrift.protocol.TField("id", org.apache.thrift.protocol.TType.I32, (short)2);
+    private static final org.apache.thrift.protocol.TField ID_FIELD_DESC = new org.apache.thrift.protocol.TField("id", org.apache.thrift.protocol.TType.STRING, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -1696,7 +1842,7 @@ public class ComputeService {
     }
 
     public List<String> files; // required
-    public int id; // required
+    public String id; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -1760,8 +1906,6 @@ public class ComputeService {
     }
 
     // isset id assignments
-    private static final int __ID_ISSET_ID = 0;
-    private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
@@ -1769,7 +1913,7 @@ public class ComputeService {
           new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
               new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING))));
       tmpMap.put(_Fields.ID, new org.apache.thrift.meta_data.FieldMetaData("id", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(doMerge_args.class, metaDataMap);
     }
@@ -1779,24 +1923,24 @@ public class ComputeService {
 
     public doMerge_args(
       List<String> files,
-      int id)
+      String id)
     {
       this();
       this.files = files;
       this.id = id;
-      setIdIsSet(true);
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
     public doMerge_args(doMerge_args other) {
-      __isset_bitfield = other.__isset_bitfield;
       if (other.isSetFiles()) {
         List<String> __this__files = new ArrayList<String>(other.files);
         this.files = __this__files;
       }
-      this.id = other.id;
+      if (other.isSetId()) {
+        this.id = other.id;
+      }
     }
 
     public doMerge_args deepCopy() {
@@ -1806,8 +1950,7 @@ public class ComputeService {
     @Override
     public void clear() {
       this.files = null;
-      setIdIsSet(false);
-      this.id = 0;
+      this.id = null;
     }
 
     public int getFilesSize() {
@@ -1849,27 +1992,28 @@ public class ComputeService {
       }
     }
 
-    public int getId() {
+    public String getId() {
       return this.id;
     }
 
-    public doMerge_args setId(int id) {
+    public doMerge_args setId(String id) {
       this.id = id;
-      setIdIsSet(true);
       return this;
     }
 
     public void unsetId() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __ID_ISSET_ID);
+      this.id = null;
     }
 
     /** Returns true if field id is set (has been assigned a value) and false otherwise */
     public boolean isSetId() {
-      return EncodingUtils.testBit(__isset_bitfield, __ID_ISSET_ID);
+      return this.id != null;
     }
 
     public void setIdIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __ID_ISSET_ID, value);
+      if (!value) {
+        this.id = null;
+      }
     }
 
     public void setFieldValue(_Fields field, Object value) {
@@ -1886,7 +2030,7 @@ public class ComputeService {
         if (value == null) {
           unsetId();
         } else {
-          setId((Integer)value);
+          setId((String)value);
         }
         break;
 
@@ -1942,12 +2086,12 @@ public class ComputeService {
           return false;
       }
 
-      boolean this_present_id = true;
-      boolean that_present_id = true;
+      boolean this_present_id = true && this.isSetId();
+      boolean that_present_id = true && that.isSetId();
       if (this_present_id || that_present_id) {
         if (!(this_present_id && that_present_id))
           return false;
-        if (this.id != that.id)
+        if (!this.id.equals(that.id))
           return false;
       }
 
@@ -1963,7 +2107,7 @@ public class ComputeService {
       if (present_files)
         list.add(files);
 
-      boolean present_id = true;
+      boolean present_id = true && (isSetId());
       list.add(present_id);
       if (present_id)
         list.add(id);
@@ -2028,7 +2172,11 @@ public class ComputeService {
       first = false;
       if (!first) sb.append(", ");
       sb.append("id:");
-      sb.append(this.id);
+      if (this.id == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.id);
+      }
       first = false;
       sb.append(")");
       return sb.toString();
@@ -2049,8 +2197,6 @@ public class ComputeService {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
-        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
-        __isset_bitfield = 0;
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
@@ -2094,8 +2240,8 @@ public class ComputeService {
               }
               break;
             case 2: // ID
-              if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-                struct.id = iprot.readI32();
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+                struct.id = iprot.readString();
                 struct.setIdIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -2128,9 +2274,11 @@ public class ComputeService {
           }
           oprot.writeFieldEnd();
         }
-        oprot.writeFieldBegin(ID_FIELD_DESC);
-        oprot.writeI32(struct.id);
-        oprot.writeFieldEnd();
+        if (struct.id != null) {
+          oprot.writeFieldBegin(ID_FIELD_DESC);
+          oprot.writeString(struct.id);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -2166,7 +2314,7 @@ public class ComputeService {
           }
         }
         if (struct.isSetId()) {
-          oprot.writeI32(struct.id);
+          oprot.writeString(struct.id);
         }
       }
 
@@ -2188,7 +2336,7 @@ public class ComputeService {
           struct.setFilesIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.id = iprot.readI32();
+          struct.id = iprot.readString();
           struct.setIdIsSet(true);
         }
       }
@@ -2550,6 +2698,935 @@ public class ComputeService {
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, doMerge_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(1);
+        if (incoming.get(0)) {
+          struct.success = new JobTime();
+          struct.success.read(iprot);
+          struct.setSuccessIsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class stopJob_args implements org.apache.thrift.TBase<stopJob_args, stopJob_args._Fields>, java.io.Serializable, Cloneable, Comparable<stopJob_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("stopJob_args");
+
+    private static final org.apache.thrift.protocol.TField JOB_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("jobId", org.apache.thrift.protocol.TType.STRING, (short)1);
+    private static final org.apache.thrift.protocol.TField TASK_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("taskId", org.apache.thrift.protocol.TType.I32, (short)2);
+    private static final org.apache.thrift.protocol.TField REPL_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("replId", org.apache.thrift.protocol.TType.I32, (short)3);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new stopJob_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new stopJob_argsTupleSchemeFactory());
+    }
+
+    public String jobId; // required
+    public int taskId; // required
+    public int replId; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      JOB_ID((short)1, "jobId"),
+      TASK_ID((short)2, "taskId"),
+      REPL_ID((short)3, "replId");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 1: // JOB_ID
+            return JOB_ID;
+          case 2: // TASK_ID
+            return TASK_ID;
+          case 3: // REPL_ID
+            return REPL_ID;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    private static final int __TASKID_ISSET_ID = 0;
+    private static final int __REPLID_ISSET_ID = 1;
+    private byte __isset_bitfield = 0;
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.JOB_ID, new org.apache.thrift.meta_data.FieldMetaData("jobId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+      tmpMap.put(_Fields.TASK_ID, new org.apache.thrift.meta_data.FieldMetaData("taskId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+      tmpMap.put(_Fields.REPL_ID, new org.apache.thrift.meta_data.FieldMetaData("replId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(stopJob_args.class, metaDataMap);
+    }
+
+    public stopJob_args() {
+    }
+
+    public stopJob_args(
+      String jobId,
+      int taskId,
+      int replId)
+    {
+      this();
+      this.jobId = jobId;
+      this.taskId = taskId;
+      setTaskIdIsSet(true);
+      this.replId = replId;
+      setReplIdIsSet(true);
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public stopJob_args(stopJob_args other) {
+      __isset_bitfield = other.__isset_bitfield;
+      if (other.isSetJobId()) {
+        this.jobId = other.jobId;
+      }
+      this.taskId = other.taskId;
+      this.replId = other.replId;
+    }
+
+    public stopJob_args deepCopy() {
+      return new stopJob_args(this);
+    }
+
+    @Override
+    public void clear() {
+      this.jobId = null;
+      setTaskIdIsSet(false);
+      this.taskId = 0;
+      setReplIdIsSet(false);
+      this.replId = 0;
+    }
+
+    public String getJobId() {
+      return this.jobId;
+    }
+
+    public stopJob_args setJobId(String jobId) {
+      this.jobId = jobId;
+      return this;
+    }
+
+    public void unsetJobId() {
+      this.jobId = null;
+    }
+
+    /** Returns true if field jobId is set (has been assigned a value) and false otherwise */
+    public boolean isSetJobId() {
+      return this.jobId != null;
+    }
+
+    public void setJobIdIsSet(boolean value) {
+      if (!value) {
+        this.jobId = null;
+      }
+    }
+
+    public int getTaskId() {
+      return this.taskId;
+    }
+
+    public stopJob_args setTaskId(int taskId) {
+      this.taskId = taskId;
+      setTaskIdIsSet(true);
+      return this;
+    }
+
+    public void unsetTaskId() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __TASKID_ISSET_ID);
+    }
+
+    /** Returns true if field taskId is set (has been assigned a value) and false otherwise */
+    public boolean isSetTaskId() {
+      return EncodingUtils.testBit(__isset_bitfield, __TASKID_ISSET_ID);
+    }
+
+    public void setTaskIdIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __TASKID_ISSET_ID, value);
+    }
+
+    public int getReplId() {
+      return this.replId;
+    }
+
+    public stopJob_args setReplId(int replId) {
+      this.replId = replId;
+      setReplIdIsSet(true);
+      return this;
+    }
+
+    public void unsetReplId() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __REPLID_ISSET_ID);
+    }
+
+    /** Returns true if field replId is set (has been assigned a value) and false otherwise */
+    public boolean isSetReplId() {
+      return EncodingUtils.testBit(__isset_bitfield, __REPLID_ISSET_ID);
+    }
+
+    public void setReplIdIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __REPLID_ISSET_ID, value);
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case JOB_ID:
+        if (value == null) {
+          unsetJobId();
+        } else {
+          setJobId((String)value);
+        }
+        break;
+
+      case TASK_ID:
+        if (value == null) {
+          unsetTaskId();
+        } else {
+          setTaskId((Integer)value);
+        }
+        break;
+
+      case REPL_ID:
+        if (value == null) {
+          unsetReplId();
+        } else {
+          setReplId((Integer)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case JOB_ID:
+        return getJobId();
+
+      case TASK_ID:
+        return getTaskId();
+
+      case REPL_ID:
+        return getReplId();
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case JOB_ID:
+        return isSetJobId();
+      case TASK_ID:
+        return isSetTaskId();
+      case REPL_ID:
+        return isSetReplId();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof stopJob_args)
+        return this.equals((stopJob_args)that);
+      return false;
+    }
+
+    public boolean equals(stopJob_args that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_jobId = true && this.isSetJobId();
+      boolean that_present_jobId = true && that.isSetJobId();
+      if (this_present_jobId || that_present_jobId) {
+        if (!(this_present_jobId && that_present_jobId))
+          return false;
+        if (!this.jobId.equals(that.jobId))
+          return false;
+      }
+
+      boolean this_present_taskId = true;
+      boolean that_present_taskId = true;
+      if (this_present_taskId || that_present_taskId) {
+        if (!(this_present_taskId && that_present_taskId))
+          return false;
+        if (this.taskId != that.taskId)
+          return false;
+      }
+
+      boolean this_present_replId = true;
+      boolean that_present_replId = true;
+      if (this_present_replId || that_present_replId) {
+        if (!(this_present_replId && that_present_replId))
+          return false;
+        if (this.replId != that.replId)
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      List<Object> list = new ArrayList<Object>();
+
+      boolean present_jobId = true && (isSetJobId());
+      list.add(present_jobId);
+      if (present_jobId)
+        list.add(jobId);
+
+      boolean present_taskId = true;
+      list.add(present_taskId);
+      if (present_taskId)
+        list.add(taskId);
+
+      boolean present_replId = true;
+      list.add(present_replId);
+      if (present_replId)
+        list.add(replId);
+
+      return list.hashCode();
+    }
+
+    @Override
+    public int compareTo(stopJob_args other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+
+      lastComparison = Boolean.valueOf(isSetJobId()).compareTo(other.isSetJobId());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetJobId()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.jobId, other.jobId);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetTaskId()).compareTo(other.isSetTaskId());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetTaskId()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.taskId, other.taskId);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetReplId()).compareTo(other.isSetReplId());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetReplId()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.replId, other.replId);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+    }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("stopJob_args(");
+      boolean first = true;
+
+      sb.append("jobId:");
+      if (this.jobId == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.jobId);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("taskId:");
+      sb.append(this.taskId);
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("replId:");
+      sb.append(this.replId);
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bitfield = 0;
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class stopJob_argsStandardSchemeFactory implements SchemeFactory {
+      public stopJob_argsStandardScheme getScheme() {
+        return new stopJob_argsStandardScheme();
+      }
+    }
+
+    private static class stopJob_argsStandardScheme extends StandardScheme<stopJob_args> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, stopJob_args struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 1: // JOB_ID
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+                struct.jobId = iprot.readString();
+                struct.setJobIdIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // TASK_ID
+              if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+                struct.taskId = iprot.readI32();
+                struct.setTaskIdIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 3: // REPL_ID
+              if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+                struct.replId = iprot.readI32();
+                struct.setReplIdIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, stopJob_args struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.jobId != null) {
+          oprot.writeFieldBegin(JOB_ID_FIELD_DESC);
+          oprot.writeString(struct.jobId);
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldBegin(TASK_ID_FIELD_DESC);
+        oprot.writeI32(struct.taskId);
+        oprot.writeFieldEnd();
+        oprot.writeFieldBegin(REPL_ID_FIELD_DESC);
+        oprot.writeI32(struct.replId);
+        oprot.writeFieldEnd();
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class stopJob_argsTupleSchemeFactory implements SchemeFactory {
+      public stopJob_argsTupleScheme getScheme() {
+        return new stopJob_argsTupleScheme();
+      }
+    }
+
+    private static class stopJob_argsTupleScheme extends TupleScheme<stopJob_args> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, stopJob_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetJobId()) {
+          optionals.set(0);
+        }
+        if (struct.isSetTaskId()) {
+          optionals.set(1);
+        }
+        if (struct.isSetReplId()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
+        if (struct.isSetJobId()) {
+          oprot.writeString(struct.jobId);
+        }
+        if (struct.isSetTaskId()) {
+          oprot.writeI32(struct.taskId);
+        }
+        if (struct.isSetReplId()) {
+          oprot.writeI32(struct.replId);
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, stopJob_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(3);
+        if (incoming.get(0)) {
+          struct.jobId = iprot.readString();
+          struct.setJobIdIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.taskId = iprot.readI32();
+          struct.setTaskIdIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.replId = iprot.readI32();
+          struct.setReplIdIsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class stopJob_result implements org.apache.thrift.TBase<stopJob_result, stopJob_result._Fields>, java.io.Serializable, Cloneable, Comparable<stopJob_result>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("stopJob_result");
+
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new stopJob_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new stopJob_resultTupleSchemeFactory());
+    }
+
+    public JobTime success; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      SUCCESS((short)0, "success");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 0: // SUCCESS
+            return SUCCESS;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, JobTime.class)));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(stopJob_result.class, metaDataMap);
+    }
+
+    public stopJob_result() {
+    }
+
+    public stopJob_result(
+      JobTime success)
+    {
+      this();
+      this.success = success;
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public stopJob_result(stopJob_result other) {
+      if (other.isSetSuccess()) {
+        this.success = new JobTime(other.success);
+      }
+    }
+
+    public stopJob_result deepCopy() {
+      return new stopJob_result(this);
+    }
+
+    @Override
+    public void clear() {
+      this.success = null;
+    }
+
+    public JobTime getSuccess() {
+      return this.success;
+    }
+
+    public stopJob_result setSuccess(JobTime success) {
+      this.success = success;
+      return this;
+    }
+
+    public void unsetSuccess() {
+      this.success = null;
+    }
+
+    /** Returns true if field success is set (has been assigned a value) and false otherwise */
+    public boolean isSetSuccess() {
+      return this.success != null;
+    }
+
+    public void setSuccessIsSet(boolean value) {
+      if (!value) {
+        this.success = null;
+      }
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case SUCCESS:
+        if (value == null) {
+          unsetSuccess();
+        } else {
+          setSuccess((JobTime)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case SUCCESS:
+        return getSuccess();
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case SUCCESS:
+        return isSetSuccess();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof stopJob_result)
+        return this.equals((stopJob_result)that);
+      return false;
+    }
+
+    public boolean equals(stopJob_result that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_success = true && this.isSetSuccess();
+      boolean that_present_success = true && that.isSetSuccess();
+      if (this_present_success || that_present_success) {
+        if (!(this_present_success && that_present_success))
+          return false;
+        if (!this.success.equals(that.success))
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      List<Object> list = new ArrayList<Object>();
+
+      boolean present_success = true && (isSetSuccess());
+      list.add(present_success);
+      if (present_success)
+        list.add(success);
+
+      return list.hashCode();
+    }
+
+    @Override
+    public int compareTo(stopJob_result other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+
+      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(other.isSetSuccess());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSuccess()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+      }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("stopJob_result(");
+      boolean first = true;
+
+      sb.append("success:");
+      if (this.success == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.success);
+      }
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+      if (success != null) {
+        success.validate();
+      }
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class stopJob_resultStandardSchemeFactory implements SchemeFactory {
+      public stopJob_resultStandardScheme getScheme() {
+        return new stopJob_resultStandardScheme();
+      }
+    }
+
+    private static class stopJob_resultStandardScheme extends StandardScheme<stopJob_result> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, stopJob_result struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 0: // SUCCESS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.success = new JobTime();
+                struct.success.read(iprot);
+                struct.setSuccessIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, stopJob_result struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.success != null) {
+          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
+          struct.success.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class stopJob_resultTupleSchemeFactory implements SchemeFactory {
+      public stopJob_resultTupleScheme getScheme() {
+        return new stopJob_resultTupleScheme();
+      }
+    }
+
+    private static class stopJob_resultTupleScheme extends TupleScheme<stopJob_result> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, stopJob_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetSuccess()) {
+          optionals.set(0);
+        }
+        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetSuccess()) {
+          struct.success.write(oprot);
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, stopJob_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
