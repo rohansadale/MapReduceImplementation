@@ -16,15 +16,21 @@ public class mergeJob implements Runnable
 		public JobTime result;
 		public int threadRunStatus;
 		public int id;
+		public String jobId;
+		public int taskId;
+		public int replId;
 
-		public mergeJob(int id,List<String> files,String ip,int port)
+		public mergeJob(String jobId,int taskId,int replId,int id,List<String> files,String ip,int port)
 		{
-				this.id					= id;
-				this.ip					= ip;
-				this.port				= port;
-				this.result				= null;
-				this.threadRunStatus	= 0;
-				this.files				= files;
+			this.jobId 				= jobId;
+			this.taskId				= taskId;
+			this.replId				= replId;
+			this.id					= id;
+			this.ip					= ip;
+			this.port				= port;
+			this.result				= null;
+			this.threadRunStatus	= 0;
+			this.files				= files;
 		}
 
 		@Override
@@ -37,7 +43,7 @@ public class mergeJob implements Runnable
 						TProtocol protocol					= new TBinaryProtocol(new TFramedTransport(transport));
 						ComputeService.Client client		= new ComputeService.Client(protocol);
 						transport.open();
-						this.result							= client.doMerge(files,id);
+						this.result							= client.doMerge(files,"1_"+jobId+"_"+taskId+"_"+replId);
 						transport.close();
 						if(this.result.time==-1)
 								this.threadRunStatus = 2;

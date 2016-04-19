@@ -99,16 +99,39 @@ public class Util
 		}
 	}
 
-        public static String hashFile(List<String> files){
+    public static String hashFile(List<String> files){
 
-                long code = 0;
-                int hash = 3;
-                int power = 0;
-                for(int i = 0 ; i < files.size(); i++){
-                     String fileName = files.get(i);
-                        code += (long)Math.pow(hash, power) + Long.parseLong(fileName.substring(fileName.lastIndexOf('_') + 1));
-                }
-                return String.valueOf(code);
-        }
+            long code = 0;
+            int hash = 3;
+            int power = 0;
+            for(int i = 0 ; i < files.size(); i++){
+                 String fileName = files.get(i);
+                    code += (long)Math.pow(hash, power) + Long.parseLong(fileName.substring(fileName.lastIndexOf('_') + 1));
+            }
+            return String.valueOf(code);
+    }
 
+    public static boolean cleanIntermediateFiles(String ip,int port)
+    {
+    	TTransport transport 					 	= null;
+		try
+		{
+				transport							= new TSocket(ip,port);
+				TProtocol protocol					= new TBinaryProtocol(new TFramedTransport(transport));
+				ComputeService.Client client		= new ComputeService.Client(protocol);
+				transport.open();
+				this.result							= client.cleanJob(filename,offSet,numToSort,"0_"+jobId+"_"+taskId+"_"+replId);
+				transport.close();
+				if(this.result.time==-1)
+						this.threadRunStatus = 2;
+				else
+						this.threadRunStatus = 1;
+		}
+
+		catch(TException x)
+		{
+				this.threadRunStatus				= 2;
+				transport.close();
+		}
+    }
 }

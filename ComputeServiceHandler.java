@@ -29,7 +29,7 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 
 		// Sort Task
 		@Override
-				public JobTime doSort(String fileName, int offset, int count,int file_id)
+				public JobTime doSort(String fileName, int offset, int count,String file_id)
 				{
 						float curProbability				= rnd.nextFloat();
 						if(curProbability  < this.failProbability)
@@ -40,23 +40,15 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 
 						System.out.println("\nStarting Sort task for " + fileName);
 						long startTime = System.currentTimeMillis();
-						/*		
-								try
-								{
-								Thread.sleep(10000);
-								}
-								catch(InterruptedException ex){}
-						 */
 						String resultFileName	 = "";
-						try{
-								// Reading File
+						try
+						{
 								RandomAccessFile file = new RandomAccessFile(INPUT_DIRECTORY_KEY + fileName, "r");
 								if(offset > 0)
 										file.seek(offset-1);		
 								else
 										file.seek(offset);		
 
-								// Read offset-1 and offset byte from file. If space is present in either then skip the first number		
 								boolean startFlag = true;
 								byte [] tempStart = new byte[2];		
 								file.read(tempStart);

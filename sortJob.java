@@ -18,11 +18,15 @@ public class sortJob implements Runnable
 		public int port;
 		public JobTime result;
 		public int threadRunStatus;
-		public int id;
+		public String jobId;
+		public int taskId;
+		public int replId;
 
-		public sortJob(int id,String filename,int offSet,int numToSort,String ip,int port)
+		public sortJob(String jobId,int taskId,int replId,String filename,int offSet,int numToSort,String ip,int port)
 		{
-				this.id					= id;
+				this.jobId 				= jobId;
+				this.taskId				= taskId;
+				this.replId				= replId;
 				this.filename			= filename;
 				this.offSet				= offSet;
 				this.numToSort			= numToSort;
@@ -43,7 +47,7 @@ public class sortJob implements Runnable
 						TProtocol protocol					= new TBinaryProtocol(new TFramedTransport(transport));
 						ComputeService.Client client		= new ComputeService.Client(protocol);
 						transport.open();
-						this.result							= client.doSort(filename,offSet,numToSort,id);
+						this.result							= client.doSort(filename,offSet,numToSort,"0_"+jobId+"_"+taskId+"_"+replId);
 						transport.close();
 						if(this.result.time==-1)
 								this.threadRunStatus = 2;
