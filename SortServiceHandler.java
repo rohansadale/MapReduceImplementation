@@ -109,16 +109,16 @@ public class SortServiceHandler implements SortService.Iface
 		ArrayList<JobTime> killedJobs	= null;
 		ArrayList<sortJob> success 		= new ArrayList<sortJob>();
 		int [] hasProcessed 			= new int[jobs.size()];
-		boolean completeJobStatus		= false;
 		ExecutorService executor 		= Executors.newFixedThreadPool(threadPoolCount);
 		for(int i=0;i<jobs.size();i++)
 		{
-			for(int j=0;j<jobs.get(i).size();j++)
-				executor.execute(jobs.get(i).get(j));
+			for(int j=0;j<jobs.get(i).size();j++) executor.execute(jobs.get(i).get(j));
 		}
 
-		while(true)
+		int successIdx					= -1;
+		while(finishedJobs!=jobs.size())
 		{
+			finishedJobs	= 0;
 			for(int i=0;i<jobs.size();i++)
 			{
 				if(1==hasProcessed[i]) 
@@ -126,31 +126,28 @@ public class SortServiceHandler implements SortService.Iface
 					finishedJobs			= finishedJobs+1;
 					continue;
 				}
-				failedReplicatedJobs 			= 0;
-				for(int j=0;j<jobs.get(i).size();j++)
+				failedReplicatedJobs 	= 0;
+				successIdx 				= -1;
+				for(int j=0;j<jobs.get(i).size() && successIdx==-1;j++)
 				{
-					if(1==jobs.get(i).get(j).threadRunStatus)
-					{
-						killedJobs				= Util.getInstance().stopSortJob(jobs.get(i),j);
-						finishedJobs 			= finishedJobs+1;
-						sortFailedJobs			= sortFailedJobs+killedJobs.size();
-						killedJobs.add(jobs.get(i).get(j).result);
-						success.add(jobs.get(i).get(j));
-						hasProcessed[i]				= 1;
-						break;
-					}
-					if(2==jobs.get(i).get(j).threadRunStatus)
-						failedReplicatedJobs	= failedReplicatedJobs+1;
+					if(1==jobs.get(i).get(j).threadRunStatus) successIdx = j;
+					if(2==jobs.get(i).get(j).threadRunStatus) failedReplicatedJobs	= failedReplicatedJobs+1;
 				}
-				if(failedReplicatedJobs==jobs.get(i).size()) 
+				if(successIdx!=-1)
+				{
+					killedJobs				= Util.getInstance().stopSortJob(jobs.get(i),successIdx);
+					finishedJobs 			= finishedJobs+1;
+					sortFailedJobs			= sortFailedJobs+killedJobs.size();
+					success.add(jobs.get(i).get(successIdx));
+					hasProcessed[i]			= 1;
+				}
+				else if(failedReplicatedJobs==jobs.get(i).size())
 				{
 					success.clear();
 					executor.shutdown();
 					return success;
 				}
 			}
-			if(finishedJobs==jobs.size()) break;
-			finishedJobs	= 0;
 		}
 		executor.shutdown();
 		return success;
@@ -189,9 +186,10 @@ public class SortServiceHandler implements SortService.Iface
 		ArrayList<JobTime> killedJobs		= null;
 		ArrayList<mergeJob> success 		= new ArrayList<mergeJob>();
 		int [] hasProcessed 				= new int[jobs.size()];
-		boolean completeJobStatus			= false;
-		while(true)
+		int successIdx						= -1;
+		while(finishedJobs!=jobs.size())
 		{
+			finishedJobs	= 0;
 			for(int i=0;i<jobs.size();i++)
 			{
 				if(1==hasProcessed[i]) 
@@ -199,94 +197,101 @@ public class SortServiceHandler implements SortService.Iface
 					finishedJobs			= finishedJobs+1;
 					continue;
 				}
-				failedReplicatedJobs 			= 0;
-				for(int j=0;j<jobs.get(i).size();j++)
+				failedReplicatedJobs 		= 0;
+				successIdx 					= -1;
+				for(int j=0;j<jobs.get(i).size() && successIdx==-1;j++)
 				{
-					if(1==jobs.get(i).get(j).threadRunStatus)
-					{
-						killedJobs			= Util.getInstance().stopMergeJob(jobs.get(i),j);
-						finishedJobs 		= finishedJobs+1;
-						mergeFailedJobs 	= mergeFailedJobs+killedJobs.size();
-						killedJobs.add(jobs.get(i).get(j).result);
-						success.add(jobs.get(i).get(j));
-						hasProcessed[i]		= 1;
-						break;
-					}
-					if(2==jobs.get(i).get(j).threadRunStatus)
-						failedReplicatedJobs	= failedReplicatedJobs+1;
+					if(1==jobs.get(i).get(j).threadRunStatus) successIdx = j;
+					if(2==jobs.get(i).get(j).threadRunStatus) failedReplicatedJobs	= failedReplicatedJobs+1;
 				}
-				if(failedReplicatedJobs==jobs.get(i).size()) 
+				if(successIdx!=-1)
+				{
+					killedJobs				= Util.getInstance().stopMergeJob(jobs.get(i),successIdx);
+					finishedJobs 			= finishedJobs+1;
+					mergeFailedJobs			= mergeFailedJobs+killedJobs.size();
+					success.add(jobs.get(i).get(successIdx));
+					hasProcessed[i]			= 1;
+				}
+				else if(failedReplicatedJobs==jobs.get(i).size())
 				{
 					success.clear();
 					return success;
 				}
 			}
-			if(finishedJobs==jobs.size()) break;
-			finishedJobs	= 0;
 		}
 		return success;
+	}
+
+	private ArrayList<String> processMergeJobResults(ArrayList<mergeJob> success) throws TException
+	{
+		ArrayList<String> intermediateFiles = new ArrayList<String>();
+		for(int i=0;i<success.size();i++)
+		{
+				if(mergeCount.containsKey(success.get(i).ip)==false)
+				{
+						mergeCount.put(success.get(i).ip,0);
+						mergeDuration.put(success.get(i).ip,(long)0L);
+				}
+				mergeCount.put(success.get(i).ip,mergeCount.get(success.get(i).ip)+1);
+				mergeDuration.put(success.get(i).ip,mergeDuration.get(success.get(i).ip) + success.get(i).result.time);
+				intermediateFiles.add(success.get(i).result.filename);
+		}
+		return intermediateFiles;
 	}
 
 	private JobStatus doMerge(ArrayList< sortJob > sortResult) throws TException
 	{
 		JobStatus result 					= new JobStatus(false,"","");
-		System.out.println("Starting Merging files ..... ");
 		ArrayList<String> intermediateFiles = new ArrayList<String>();
-		for(int i=0;i<sortResult.size();i++)
-			intermediateFiles.add(sortResult.get(i).result.filename);
+		for(int i=0;i<sortResult.size();i++) intermediateFiles.add(sortResult.get(i).result.filename);
 		int seed 							= (int)((long)System.currentTimeMillis() % 1000);
-        Random rnd 							= new Random(seed);
-		mergeJobs							= 0;
-		int iter 							= replication*jobs.size()+1;
-
-		while(true)
+        int iter 							= replication*jobs.size()+1;
+        
+		while(intermediateFiles.size()!=1)
 		{
 			mjobs.clear();
-			int finishedJobs				= 0;
-			int task_node_idx				= 0;
 			System.out.println("Started Fresh Round of Merging  with " + intermediateFiles.size() + " files");
 			ExecutorService executor 		= Executors.newFixedThreadPool(threadPoolCount/5);
+			Collections.shuffle(computeNodes);
+			
 			for(int i=0;i<intermediateFiles.size();i=i+mergeTaskSize)
 			{
-				List<String> tFiles				= new ArrayList<String>();
+				ArrayList<String> tFiles 			= new ArrayList<String>();
+				ArrayList<mergeJob> replSortJob		= new ArrayList<mergeJob>();
+
 				for(int j=i;j<i+mergeTaskSize && j<intermediateFiles.size();j++)
 					tFiles.add(intermediateFiles.get(j));
-
-				Collections.shuffle(computeNodes);
-				ArrayList<mergeJob> replSortJob	= new ArrayList<mergeJob>();
-				
+				//System.out.println("Tfiles size "+tFiles);
 				for(int j=0;j<replication;j++)
 				{
-					mergeJob cmergeJob			= new mergeJob(jobId,iter,j,tFiles,
-														computeNodes.get(j).ip,computeNodes.get(j).port);
-					replSortJob.add(cmergeJob);
+					replSortJob.add(new mergeJob(jobId,iter,j,tFiles,computeNodes.get(j).ip,computeNodes.get(j).port));
 					iter 						= iter+1;
 				}
-				
 				mjobs.add(replSortJob);
 			}
-			
+			/*
+			for(int i=0;i<mjobs.size();i++)
+			{
+				for(int j=0;j<mjobs.get(i).size();j++)
+				{
+					System.out.println(replication + " " + mjobs.get(i).get(j).files.size());
+					for(int k=0;k<mjobs.get(i).get(j).files.size();k++) System.out.print(mjobs.get(i).get(j).files.get(k) + " ");
+					System.out.println("1_"+mjobs.get(i).get(j).jobId+"_"+mjobs.get(i).get(j).taskId+"_"+mjobs.get(i).get(j).replId);
+				}
+			}
+			*/
 			for(int i=0;i<mjobs.size();i++)
 			{	
 				for(int j=0;j<mjobs.get(i).size();j++)
 					executor.execute(mjobs.get(i).get(j));
-				mergeJobs							= mergeJobs + mjobs.get(i).size();
+				mergeJobs						= mergeJobs + mjobs.get(i).size();
 			}
-			ArrayList<mergeJob> success 		= processMergeJobs(mjobs);
+			intermediateFiles 					= processMergeJobResults(processMergeJobs(mjobs));
+			//System.out.println("File name form merged job ");
+			//for(int i=0;i<intermediateFiles.size();i++)
+				//System.out.println(intermediateFiles.get(i));
+			//System.out.println("--------------------");
 			executor.shutdown();
-			intermediateFiles.clear();
-			for(int i=0;i<success.size();i++)
-			{
-					if(mergeCount.containsKey(success.get(i).ip)==false)
-					{
-							mergeCount.put(success.get(i).ip,0);
-							mergeDuration.put(success.get(i).ip,(long)0L);
-					}
-					mergeCount.put(success.get(i).ip,mergeCount.get(success.get(i).ip)+1);
-					mergeDuration.put(success.get(i).ip,mergeDuration.get(success.get(i).ip) + success.get(i).result.time);
-					intermediateFiles.add(success.get(i).result.filename);
-			}
-			if(intermediateFiles.size()==1) break;
 		}
 
 		result.status	= true;

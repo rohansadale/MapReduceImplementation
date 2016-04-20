@@ -27,17 +27,17 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 		Random rnd                          = new Random();
 
 		public ComputeServiceHandler(String INPUT_DIRECTORY_KEY, String INTERMEDIATE_DIRECTORY_KEY, String OUTPUT_DIRECTORY_KEY,float failProbability,int Proactive){
-				this.INPUT_DIRECTORY_KEY = INPUT_DIRECTORY_KEY;
+				this.INPUT_DIRECTORY_KEY 	= INPUT_DIRECTORY_KEY;
 				this.INTERMEDIATE_DIRECTORY_KEY = INTERMEDIATE_DIRECTORY_KEY;	
-				this.OUTPUT_DIRECTORY_KEY = OUTPUT_DIRECTORY_KEY;	
-				this.failProbability = failProbability;
-				this.sortState	= new HashMap<String, Boolean>();
-				this.mergeState	= new HashMap<String, Boolean>();
-				this.sortFileMap	= new HashMap<String,String>();
-				this.mergeFileMap	= new HashMap<String,String>();				
-				this.mergeDelete = new HashMap<String, List<String>>();
-				this.jobDuration = new HashMap<String, Long>();
-				this.Proactive = Proactive;
+				this.OUTPUT_DIRECTORY_KEY 	= OUTPUT_DIRECTORY_KEY;	
+				this.failProbability 		= failProbability;
+				this.sortState				= new HashMap<String, Boolean>();
+				this.mergeState				= new HashMap<String, Boolean>();
+				this.sortFileMap			= new HashMap<String,String>();
+				this.mergeFileMap			= new HashMap<String,String>();				
+				this.mergeDelete 			= new HashMap<String, List<String>>();
+				this.jobDuration 			= new HashMap<String, Long>();
+				this.Proactive 				= Proactive;
 		}
 
 
@@ -46,7 +46,7 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 				public JobTime doSort(String fileName, int offset, int count,String file_id)
 				{
 						float curProbability				= rnd.nextFloat();
-						if(this.Proactive > 0 && curProbability  < this.failProbability)
+						if(this.Proactive ==0 && curProbability  < this.failProbability)
 						{
 								System.out.println("Failing this Task as random number generated is less than fail probability ...");
 								return new JobTime("",(long)-1);
@@ -126,12 +126,12 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 						return(new JobTime(fileName+"_"+file_id, elapsedTime));		
 				} 
 
-		@Override
+				@Override
 				public boolean ping(){
 						return true;
 				}
 
-		@Override
+				@Override
 				public boolean cleanJob()
 				{
 						boolean result = true;
@@ -149,17 +149,11 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 				{
 						String key = jobId + String.valueOf(taskId) + String.valueOf(replId);
 						String fileName = "";
-                                                String absolutePath = System.getProperty("user.dir");
-						if(mergeState.containsKey(key)){
+						String absolutePath = System.getProperty("user.dir");
+						if(mergeState.containsKey(key))
+						{
 								mergeState.put(key, false);
 								fileName = mergeFileMap.get(key);
-					
-								// Sleep for few ms before deleting merge files	
-								try{
-									Thread.sleep(100);
-								}catch(Exception e){
-									System.out.println("Thread Sleeping failed");
-								}
 						}
 						else if(sortState.containsKey(key)){
 								sortState.put(key, false);
@@ -172,23 +166,27 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 				@Override
 				public JobTime doMerge(List<String> files,String file_id)
 				{
-
-						try
+					try
 						{
 								float curProbability                = rnd.nextFloat();
-								if(this.Proactive > 0 && curProbability  < this.failProbability)	
+								if(this.Proactive ==0 && curProbability  < this.failProbability)	
 								{
 										System.out.println("Failing this Task as random number generated is less than fail probability ...");
 										return new JobTime("",(long)-1);
 								}
 
-								if(1==files.size()) return new JobTime(files.get(0),(long)0);
+								if(1==files.size()) 
+									return new JobTime(files.get(0),(long)0);
 								long startTime = System.currentTimeMillis();	
 								int n = files.size();
 								int [] numbers = new int[n];
 								Scanner[] fp = new Scanner[n];
 								String outFileName = "merge_" + file_id;	
 								String absolutePath = System.getProperty("user.dir");
+
+								//System.out.println("Files used in Merge Task");
+								//for(int i=0;i<files.size();i++) System.out.print(files.get(i) + " ");
+								//System.out.println(" with outFileName " + outFileName);
 
 								try
 								{		
@@ -236,14 +234,6 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 										}		
 										pw.close();
 										fw.close();
-
-										// Deleting intermediate sort/merge files
-										/*
-										for(int i = 0; i < files.size(); i++){
-												File f = new File(absolutePath + "/" + INTERMEDIATE_DIRECTORY_KEY + files.get(i));
-												f.delete();
-										}
-										*/
 								}
 								catch(IOException e)
 								{

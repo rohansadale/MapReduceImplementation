@@ -116,11 +116,10 @@ public class Util
 	public static ArrayList<JobTime> stopSortJob(ArrayList< sortJob > jobs,int idx) throws TException
 	{
 		ArrayList<JobTime> killedJobs	= new ArrayList<JobTime>();
+		JobTime result					= null; 
 		for(int i=0;i<jobs.size();i++)
 		{
 			if(i==idx) continue;
-			jobs.get(i).threadRunStatus				= 2;
-			JobTime result	= new JobTime("",(long)0);
 			try
 			{
 				TTransport transport                = new TSocket(jobs.get(i).ip,jobs.get(i).port);
@@ -128,6 +127,7 @@ public class Util
 				ComputeService.Client client        = new ComputeService.Client(protocol);
 				transport.open();
 				result			                    = client.stopJob(jobs.get(i).jobId,jobs.get(i).taskId,jobs.get(i).replId);
+				jobs.get(i).threadRunStatus			= 2;
 				transport.close();
 			}
 			catch(TException x)
@@ -141,11 +141,10 @@ public class Util
     public static ArrayList<JobTime> stopMergeJob(ArrayList< mergeJob > jobs,int idx) throws TException
 	{
 		ArrayList<JobTime> killedJobs	= new ArrayList<JobTime>();
+		JobTime result					= null;
 		for(int i=0;i<jobs.size();i++)
 		{
 			if(i==idx) continue;
-			jobs.get(i).threadRunStatus				= 2;
-			JobTime result	= new JobTime("",(long)0);
 			try
 			{
 				TTransport transport                = new TSocket(jobs.get(i).ip,jobs.get(i).port);
@@ -153,6 +152,7 @@ public class Util
 				ComputeService.Client client        = new ComputeService.Client(protocol);
 				transport.open();
 				result			                    = client.stopJob(jobs.get(i).jobId,jobs.get(i).taskId,jobs.get(i).replId);
+				jobs.get(i).threadRunStatus			= 2;
 				transport.close();
 			}
 			catch(TException x)

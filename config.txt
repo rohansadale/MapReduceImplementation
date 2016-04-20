@@ -1,9 +1,10 @@
-ServerIP:csel-x30-01.cselabs.umn.edu
+ServerIP:127.0.0.1
 ServerPort:9088
 InputDirectory:Data/input/
 IntermediateDirectory:Data/intermediate/
 OutputDirectory:Data/output/
 ChunkSize:50000
-MergeTaskSize:10
-TaskReplication:1
+MergeTaskSize:8
+TaskReplication:3
 FailProbability:0.4
+Proactive:1
