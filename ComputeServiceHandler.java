@@ -237,7 +237,7 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 								}
 								catch(IOException e)
 								{
-									System.out.println("Here --1 "+e);
+									//System.out.println("Here --1 "+e);
 									return new JobTime("",(long)-1);
 								}
 
@@ -249,7 +249,7 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 						}
 						catch(Exception e) 
 						{
-							System.out.println("Here -- 2"+e); 
+							//System.out.println("Here -- 2"+e); 
 							return new JobTime("",(long)-1);
 						}
 					}

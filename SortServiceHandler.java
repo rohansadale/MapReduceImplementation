@@ -26,11 +26,12 @@ public class SortServiceHandler implements SortService.Iface
 	private static HashMap<String,Integer> mergeCount	= null;
 	private static int initSystemSize					= 0;
 	private static int threadPoolCount 					= 50;
+	private int Proactive 								= 0;
 	private static ArrayList< ArrayList<sortJob> >  jobs;
 	private static ArrayList< ArrayList<mergeJob> > mjobs;
 
 	public SortServiceHandler(Node node,String inputDirectory,String intermediateDirectory,String outputDirectory,
-							int chunkSize,int mergeTaskSize,int replication)
+							int chunkSize,int mergeTaskSize,int replication,int Proactive)
 	{
 		computeNodes				= new ArrayList<Node>();
 		this.chunkSize				= chunkSize;
@@ -48,6 +49,8 @@ public class SortServiceHandler implements SortService.Iface
 		mjobs						= new ArrayList< ArrayList<mergeJob> >();
 		mergeDuration				= new HashMap<String,Long>();
 		mergeCount					= new HashMap<String,Integer>();
+		this.Proactive 				= Proactive;
+		if(0==this.Proactive) this.replication = 1;
 	}
 	
 	public void healthCheck()
