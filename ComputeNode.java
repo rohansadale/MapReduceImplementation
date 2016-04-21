@@ -53,7 +53,7 @@ public class ComputeNode{
 
 				try{
 						// Establishing connection with Master and joining the system
-						TSocket socket						= new TSocket(configParam.get(SERVER_IP_KEY),Integer.parseInt(configParam.get(SERVER_PORT_KEY)),120*1000);
+						TSocket socket						= new TSocket(configParam.get(SERVER_IP_KEY),Integer.parseInt(configParam.get(SERVER_PORT_KEY)),120*1000*10);
 						TTransport transport 				= new TFramedTransport(socket,Util.getInstance().Transport_Size);
 						TProtocol protocol 					= new TBinaryProtocol(transport);
 						SortService.Client client 			= new SortService.Client(protocol);

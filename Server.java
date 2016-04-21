@@ -22,8 +22,8 @@ public class Server
 	private static String MERGE_SIZE_KEY				= "MergeTaskSize";
 	private static String TASK_REPLICATION_KEY			= "TaskReplication";
 	private static String FAIL_PROBABILITY_KEY			= "FailProbability"; 
-	private static String PROACTIVE_KEY					= "Proactive";
-	
+	private static String PROACTIVE_KEY 				= "Proactive";
+
 	public static void main(String targs[]) throws TException
 	{
 		try
