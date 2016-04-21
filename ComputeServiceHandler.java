@@ -46,7 +46,7 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 				public JobTime doSort(String fileName, int offset, int count,String file_id)
 				{
 						float curProbability				= rnd.nextFloat();
-						if(this.Proactive ==0 && curProbability  < this.failProbability)
+						if(curProbability  < this.failProbability)
 						{
 								System.out.println("Failing this Task as random number generated is less than fail probability ...");
 								return new JobTime("",(long)-1);
@@ -169,7 +169,7 @@ public class ComputeServiceHandler implements ComputeService.Iface{
 					try
 						{
 								float curProbability                = rnd.nextFloat();
-								if(this.Proactive ==0 && curProbability  < this.failProbability)	
+								if(curProbability  < this.failProbability)	
 								{
 										System.out.println("Failing this Task as random number generated is less than fail probability ...");
 										return new JobTime("",(long)-1);
